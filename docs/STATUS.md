@@ -1,4 +1,21 @@
-The project has not yet started.
+MVP implementation has not started.
+
+## MVP intent
+
+- Completed the intent interview. The MVP covers all five sections for one salesperson doing daily sales work. Sign-off requires offline startup and use after setup on Windows, macOS and Linux, passing automated tests, and a full browser walkthrough. See `docs/intent.md`.
+- Clarified that a contact can exist without an organization and can be linked to one later. See `docs/intent.md` and `GLOSSARY.md`.
+- Clarified that a deal must have an organization, a main contact, or both.
+- Required the user to clear all active deal links before deleting a contact. The dialog links to each deal that blocks deletion.
+- Blocked organization deletion while an active deal depends on that organization alone. When deletion can proceed, the contacts and deals stay and their links to the organization are removed.
+- Defined Trash and recovery for all four record types, including activities and follow-ups that move with a deleted contact or deal.
+- Defined which contact and deal links return automatically when an organization is restored.
+- Required at least one active organization or main contact link when a deal is restored. Only active deals can block deletion of a contact or organization.
+- Clarified that call notes belong to their contact and move to Trash and return with that contact.
+- Added a choice when restoring a contact with a former organization. The user can restore the active organization link or restore the contact as an individual.
+- Defined local save and load commands, automatic backups before reset and load, and two separate confirmations before deleting a saved backup.
+- Set three daily sales outcomes and clarified the need for a welcoming, minimal interface for new and experienced salespeople.
+- Set Accountable as the main place to track customers and deals. Added spreadsheet import and export to MVP scope.
+- Defined realistic sample data as the demo for prospective salespeople and included it in the browser walkthrough.
 
 ## Tooling setup
 
