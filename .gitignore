@@ -58,6 +58,8 @@ supabase/.branches/
 # Coding agents' personal settings
 .claude/settings.local.json
 .github/copilot/settings.local.json
+.kimi-code/
+.pi/
 
 # Claude Code's worktrees, one folder for each parallel session
 .claude/worktrees/
