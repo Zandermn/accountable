@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accountable | Sales overview</title>
+  <link rel="stylesheet" href="mockups.css">
+  <script defer src="mockups.js"></script>
+</head>
+<body class="overview">
+  <div class="shell">
+    <aside class="rail">
+      <div class="rail-inner">
+        <a class="brand" href="#dashboard"><span class="brand-mark" aria-hidden="true"></span>Accountable</a>
+        <nav class="menu" aria-label="Main sections">
+          <a href="#dashboard" aria-current="location"><i aria-hidden="true"></i>Dashboard</a>
+          <a href="#organizations"><i aria-hidden="true"></i>Organizations</a>
+          <a href="#contacts"><i class="round" aria-hidden="true"></i>Contacts</a>
+          <a href="#deals"><i aria-hidden="true"></i>Deals</a>
+          <a href="#pipeline"><i class="board" aria-hidden="true"></i>Pipeline</a>
+        </nav>
+        <nav class="menu" aria-label="Utilities">
+          <span><i aria-hidden="true"></i>Trash</span>
+          <span><i aria-hidden="true"></i>Data</span>
+        </nav>
+      </div>
+    </aside>
+    <main>
+      <section class="view" id="dashboard" aria-labelledby="dashboard-title">
+        <header class="page-head">
+          <div><h1 id="dashboard-title">Dashboard</h1><p>Sales performance, follow-ups, and customer activity</p></div>
+          <a class="button" href="#pipeline">Open pipeline <span aria-hidden="true">→</span></a>
+        </header>
+        <div class="stats" id="dashboard-stats"></div>
+        <div class="dash-grid">
+          <section class="panel revenue" id="revenue"></section>
+          <section class="panel wins" id="wins"></section>
+          <section class="panel funnel" id="funnel"></section>
+          <section class="panel tasks" id="tasks"></section>
+          <section class="panel activity" id="activity"></section>
+        </div>
+      </section>
+      <section class="view" id="pipeline" aria-labelledby="pipeline-title">
+        <header class="page-head board-header">
+          <div><h2 class="page-title" id="pipeline-title">Pipeline</h2><p>Move deals between stages or change their order</p></div>
+          <button class="button" type="button" data-add="0">+ Add deal</button>
+        </header>
+        <div class="board-totals" id="board-totals" aria-live="polite"></div>
+        <div class="board-overflow"><div class="board" id="board"></div></div>
+        <p class="sr-only" id="move-status" role="status"></p>
+      </section>
+      <section class="view" id="directory" aria-labelledby="directory-title" hidden></section>
+    </main>
+  </div>
+  <dialog id="record-dialog" aria-labelledby="dialog-title"></dialog>
+</body>
+</html>

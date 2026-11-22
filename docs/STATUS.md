@@ -1,5 +1,11 @@
 MVP implementation has not started.
 
+## MVP specification
+
+- Wrote `docs/spec.md` for engineering handoff. It covers the five main sections, the brand, record lifecycle rules, spreadsheet exchange, local backups, and acceptance checks. It records design decisions where requirements overlap or leave details open.
+- Added five HTML mockups in `docs/mockups/`, each with a full-page Playwright screenshot of Dashboard and Pipeline. Each mockup has searchable Organizations, Contacts, and Deals with linked sample records. Sales Pulse and Deal Desk explore different ways to present the sales funnel. The mockups use sample data and local browser storage.
+- Selected [Mockup 6 — Deal Workspace](mockups/06-deal-workspace.html) as the approved MVP design. The spec records the deal notes and Show in pipeline behavior. The [Playwright screenshot](mockups/06-deal-workspace.png) shows the selected deal beside the board. The mockup saves notes in browser storage.
+
 ## MVP intent
 
 - Completed the intent interview. The MVP covers all five sections for one salesperson doing daily sales work. Sign-off requires offline startup and use after setup on Windows, macOS and Linux, passing automated tests, and a full browser walkthrough. See `docs/intent.md`.
