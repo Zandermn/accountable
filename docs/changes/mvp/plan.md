@@ -2,7 +2,7 @@
 
 ## Files that change
 
-The implementation follows the [intent](intent.md), [specification](spec.md), [tech stack](TECH_STACK.md), [brand guidelines](../.agents/skills/brand/SKILL.md), and [approved Deal Workspace mockup](mockups/06-deal-workspace.html). The paths below show the planned file layout.
+The implementation follows the [intent](intent.md), [specification](../../spec.md), [tech stack](../../TECH_STACK.md), [brand guidelines](../../../.agents/skills/brand/SKILL.md), and [approved Deal Workspace mockup](../../mockups/06-deal-workspace.html). The paths below show the planned file layout.
 
 | Path | Phase | Planned change |
 | --- | --- | --- |

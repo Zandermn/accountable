@@ -10,6 +10,8 @@ Make a separate pass over every change for each of these:
 - **Security:** no secrets or personal data are exposed, and nobody can do what they shouldn't.
 - **Matches spec.md and plan.md:** the change does what those documents say, with nothing missing and nothing extra.
 
+Flag any code that `docs/spec.md` doesn't describe.
+
 ## Important
 
 An Important finding must be fixed before the change merges. A finding is Important if the change breaks behavior that should work, leaks data or breaks a rule in AGENTS.md.

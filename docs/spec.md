@@ -1,12 +1,16 @@
-# Accountable MVP specification
+# Accountable product specification
 
-## Purpose and scope
+## Problem
 
-Accountable is the main place for one small-business salesperson to track customers and deals. A new salesperson can learn the workflow with realistic sample data. An experienced salesperson can find the next follow-up, judge which deals are likely to close, and review customer history quickly.
+A small business keeps track of its customers and sales in spreadsheets, inboxes, and people's heads. Nobody can see at a glance which companies the business deals with, who its contacts are, what is in the sales pipeline, what happened last with a customer, or what needs doing next.
 
-The MVP runs on one computer. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, spreadsheet import and export, and local data commands. It uses US dollars and a fixed pipeline. It excludes sign-in, user accounts, shared data, a user audit log, hosted access, dark mode, a phone layout, AI, email, calendar and phone integrations, other business-system integrations, other currencies, reports beyond the Dashboard, tags, custom fields, and pipeline configuration.
+## Product purpose and current scope
 
-The agreed requirements come from [MVP intent](intent.md). The implementation uses the [tech stack](TECH_STACK.md) and the interface follows the [brand skill](../.agents/skills/brand/SKILL.md). This spec sets MVP design defaults where the intent leaves an implementation choice. The final section records the choices that affect how to interpret those requirements.
+Accountable is the main place for one small-business salesperson to track customers and deals. A new salesperson can learn the workflow with realistic sample data. An experienced salesperson can find the next follow-up, judge which deals are likely to close, and review customer history quickly. The product helps salespeople miss fewer follow-ups and find customer history when they need it.
+
+Accountable runs on one computer. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, spreadsheet import and export, and local data commands. It uses US dollars and a fixed pipeline. It excludes sign-in, user accounts, shared data, a user audit log, hosted access, dark mode, a phone layout, AI, email, calendar and phone integrations, other business-system integrations, other currencies, reports beyond the Dashboard, tags, custom fields, and pipeline configuration.
+
+This specification describes the whole product as it stands today. The implementation uses the [tech stack](TECH_STACK.md), and the interface follows the [brand skill](../.agents/skills/brand/SKILL.md). The final section records design decisions that define current product behavior.
 
 ## Navigation and common interactions
 
@@ -160,21 +164,21 @@ Advance a dataset revision on each successful load or reset, regardless of the r
 
 For backup deletion, bind the two sequential confirmations to the selected file. The server accepts the final request only after the first confirmation for that backup and rechecks the selected ID before deletion. A cancellation ends the confirmation flow without deleting the file. Only list and manage files that the app recognizes in its backup directory.
 
-## Acceptance and sign-off
+## Verification
 
-Use Vitest for frontend tests, pytest for backend tests, and Playwright Test with installed Chrome for browser tests in `e2e/`. Browser tests start the app themselves and use an isolated database and backup directory. Document the one-time setup and commands in [project status](STATUS.md) when implementation is complete.
+Use Vitest for frontend tests, pytest for backend tests, and Playwright Test with installed Chrome for browser tests in `e2e/`. Browser tests start the app themselves and use an isolated database and backup directory. The one-time setup and commands are documented in [project status](STATUS.md).
 
-| Intent criteria | Required verification |
+| Area | Required verification |
 | --- | --- |
-| 1 | On Windows, macOS, and Linux, complete setup and disconnect from the internet. Run `npm run dev`, open Dashboard, and use all five sections with sample data. Verify fonts, charts, and assets load offline. |
-| 2–3 | Create, find, sort, edit, and delete all three main record types. Filter contacts by status. Save a contact without an organization and add one later. Check all three valid deal link combinations and reject a deal with neither. Exercise both blocked deletion dialogs with multiple links. Follow each link and verify allowed organization deletion clears only the appropriate links. Check persistence after refresh and restart. |
-| 4 | Move a deal to another stage and verify its default probability, table entry, and the board and column totals. Reorder higher and lower within a column, drop into an empty column, and verify persistence after refresh. Add a deal from a column and check late labels in both views. From the Deals table and a linked record, use Show in pipeline. Verify the correct card is visible and highlighted, the details and note draft stay open, and closing returns focus to the card. |
-| 5–6 | Log an activity on each owner type, edit it, set a follow-up, and mark it done. Add and edit a deal note, verify it after refresh and restart, then remove it and verify it appears in Trash. Check timeline order, exactly one event per stage change, and no event for a reorder. Verify Dashboard calculations against known values and check updates after a win and a follow-up. |
-| 7 | In Chrome, visually inspect every screen against the brand. Use the demo to find the next follow-up, identify deals most likely to close, and find recent customer history. Check keyboard access, visible focus, and status labels. |
-| 8–10 | Restore all four record types after restart. Verify automatic organization relinking, preservation of newer links, both contact restore choices, and the unavailable former organization case. Verify an invalid deal stays in Trash until a link is available or selected. Check activity cascade, separate activity deletion, note ownership, and follow-up visibility and completion on restore. |
-| 11 | Check full save and load, reset to samples, and automatic backups before load and reset. Verify a backup includes Trash and board order. Force an automatic backup failure and verify the saved data stays intact. Cancel each backup deletion dialog in turn, then confirm both and verify deletion. |
-| 12 | Import a workbook with all three record types and cross-sheet links, find and edit those records in the app, export and verify the updated workbook. Test invalid and stale imports and check that no partial changes are applied. |
-| 13 | Run `npm test`. Walk through the applicable actions in a real browser as a salesperson, review every screen, and verify the browser console has no errors. Run the local data commands with representative records. Record the test results and OS coverage before sign-off. |
+| Offline startup and sample data | On Windows, macOS, and Linux, complete setup and disconnect from the internet. Run `npm run dev`, open Dashboard, and use all five sections with sample data. Verify fonts, charts, and assets load offline. |
+| Records and relationships | Create, find, sort, edit, and delete all three main record types. Filter contacts by status. Save a contact without an organization and add one later. Check all three valid deal link combinations and reject a deal with neither. Exercise both blocked deletion dialogs with multiple links. Follow each link and verify allowed organization deletion clears only the appropriate links. Check persistence after refresh and restart. |
+| Pipeline | Move a deal to another stage and verify its default probability, table entry, and the board and column totals. Reorder higher and lower within a column, drop into an empty column, and verify persistence after refresh. Add a deal from a column and check late labels in both views. From the Deals table and a linked record, use Show in pipeline. Verify the correct card is visible and highlighted, the details and note draft stay open, and closing returns focus to the card. |
+| Activities and Dashboard | Log an activity on each owner type, edit it, set a follow-up, and mark it done. Add and edit a deal note, verify it after refresh and restart, then remove it and verify it appears in Trash. Check timeline order, exactly one event per stage change, and no event for a reorder. Verify Dashboard calculations against known values and check updates after a win and a follow-up. |
+| Brand and accessibility | In Chrome, visually inspect every screen against the brand. Use the demo to find the next follow-up, identify deals most likely to close, and find recent customer history. Check keyboard access, visible focus, and status labels. |
+| Trash and restoration | Restore all four record types after restart. Verify automatic organization relinking, preservation of newer links, both contact restore choices, and the unavailable former organization case. Verify an invalid deal stays in Trash until a link is available or selected. Check activity cascade, separate activity deletion, note ownership, and follow-up visibility and completion on restore. |
+| Local recovery | Check full save and load, reset to samples, and automatic backups before load and reset. Verify a backup includes Trash and board order. Force an automatic backup failure and verify the saved data stays intact. Cancel each backup deletion dialog in turn, then confirm both and verify deletion. |
+| Spreadsheet exchange | Import a workbook with all three record types and cross-sheet links, find and edit those records in the app, export and verify the updated workbook. Test invalid and stale imports and check that no partial changes are applied. |
+| Full product check | Run `npm test`. Walk through the applicable actions in a real browser as a salesperson, review every screen, and verify the browser console has no errors. Run the local data commands with representative records. Record the test results and OS coverage before sign-off. |
 
 ## Areas of concern and design decisions
 
@@ -182,9 +186,9 @@ Use Vitest for frontend tests, pytest for backend tests, and Playwright Test wit
 | --- | --- |
 | Five accent colors and six stages | The brand names five ordered accents. Use those five and a neutral sixth accent with visible stage labels. This preserves all six stages and avoids inventing a brand color. |
 | White text on information and alert colors | White on exact Cerulean is about 3.96:1 and white on exact Raspberry is about 3.62:1. These pairings fall short of 4.5:1 for normal text. The darker fills in the brand section are deliberate exceptions to the exact color values for small white text. |
-| Manual probability and stage transitions | Import and form edits can provide both a probability and a new stage. Apply the stage default on the transition, then let the salesperson edit the probability in a later save. The UI shows this rule before saving. The default percentages are design values because the intent leaves them unspecified. |
+| Manual probability and stage transitions | Import and form edits can provide both a probability and a new stage. Apply the stage default on the transition, then let the salesperson edit the probability in a later save. The UI shows this rule before saving. The default percentages are fixed product values. |
 | Organization restoration and contact choice | Automatic restoration applies to eligible links cleared by the organization's deletion. An explicit decision to restore a contact as an individual takes precedence over an older pending link. If the contact is already in Trash when the organization goes to Trash, the contact's own restore dialog controls its former link. |
-| Open deals and active deals | The intent uses both terms. Closed deals still in the app can prevent deletion of a linked record. The open pipeline reports only the four selling stages. Use these definitions consistently in the UI, API, queries, and tests. |
+| Open deals and active deals | Active and open have different meanings. Closed deals still in the app can prevent deletion of a linked record. The open pipeline reports only the four selling stages. Use these definitions consistently in the UI, API, queries, and tests. |
 | Tables and record ownership | Main tables represent organizations, contacts, and deals, with their own Add actions. Activities are entered from their owner. Trash is a recovery list, so its available action is Restore. This preserves the general table requirements for the main record tables and the specific restrictions on Trash. |
 | System stage events and activity editing | Keep stage events in the deal's history when users edit or delete their notes, calls, and emails. This preserves the lifecycle data used by the funnel. For deals created or imported at an advanced stage, history starts at the first recorded stage. The funnel measures recorded reach, with no estimates for earlier stages. |
 | Spreadsheet versus full recovery | The minimum spreadsheet contract covers three active record types. A spreadsheet round trip updates those records by ID. Restore a previous complete state from a local backup, including Trash and activity data. |

@@ -2,6 +2,13 @@
 
 The local CRM is implemented. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app keeps records and board order in SQLite.
 
+## Documentation organization
+
+- Moved the MVP intent and plan to `docs/changes/mvp/`.
+- Made `docs/spec.md` the standalone specification for the current product, including the original customer problem.
+- Updated `AGENTS.md` to put the specification first and isolate each change's documents by branch name.
+- Updated `docs/REVIEW.md` to require findings for code that the specification does not describe.
+
 ## Review policy
 
 The [review policy](REVIEW.md) defines three checks before merge and when a finding blocks the merge. It covers partial workbook imports, local access to sales records, and recovery from data loss.
@@ -97,7 +104,7 @@ The walkthrough writes screenshots under `test-results/`. Pytest reports one ups
 
 ## MVP implementation plan
 
-- Wrote and reviewed [the MVP implementation plan](plan.md). It maps file changes to work phases, defines when each phase is complete, and lists unit, integration, browser, and offline sign-off checks.
+- Wrote and reviewed [the MVP implementation plan](changes/mvp/plan.md). It maps file changes to work phases, defines when each phase is complete, and lists unit, integration, browser, and offline sign-off checks.
 
 ## MVP specification
 
@@ -107,8 +114,8 @@ The walkthrough writes screenshots under `test-results/`. Pytest reports one ups
 
 ## MVP intent
 
-- Completed the intent interview. The MVP covers all five sections for one salesperson doing daily sales work. Sign-off requires offline startup and use after setup on Windows, macOS and Linux, passing automated tests, and a full browser walkthrough. See `docs/intent.md`.
-- Clarified that a contact can exist without an organization and can be linked to one later. See `docs/intent.md` and `GLOSSARY.md`.
+- Completed the intent interview. The MVP covers all five sections for one salesperson doing daily sales work. Sign-off requires offline startup and use after setup on Windows, macOS and Linux, passing automated tests, and a full browser walkthrough. See `docs/changes/mvp/intent.md`.
+- Clarified that a contact can exist without an organization and can be linked to one later. See `docs/changes/mvp/intent.md` and `GLOSSARY.md`.
 - Clarified that a deal must have an organization, a main contact, or both.
 - Required the user to clear all active deal links before deleting a contact. The dialog links to each deal that blocks deletion.
 - Blocked organization deletion while an active deal depends on that organization alone. When deletion can proceed, the contacts and deals stay and their links to the organization are removed.
