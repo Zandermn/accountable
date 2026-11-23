@@ -153,7 +153,7 @@ export function RecordDialog({ action, close }: { action: Action; close: () => v
           action.dataset,
         );
       else if (action.type === 'restore') {
-        const body: Record<string, string | null> = {};
+        const body: Record<string, string | null> = { deletion: row!.deletion };
         if (kind === 'contacts' && row!.former.organization_id)
           body.organization_choice =
             values.organization_choice ||
@@ -175,12 +175,16 @@ export function RecordDialog({ action, close }: { action: Action; close: () => v
               'value_cents',
             );
           body.value_cents = Math.round(Number(amount) * 100);
-          body.probability = values.probability === '' ? null : Number(values.probability);
+          if (!values.probability)
+            throw new Failure('Enter a probability from 0 to 100.', 'probability');
+          body.probability = Number(values.probability);
         }
         if (kind === 'activities') {
           if (!values.occurred_at)
             throw new Failure('Enter the time of occurrence.', 'occurred_at');
-          body.occurred_at = new Date(values.occurred_at).toISOString();
+          if (row && values.occurred_at === localTime(row.occurred_at))
+            delete body.occurred_at;
+          else body.occurred_at = new Date(values.occurred_at).toISOString();
           if (!row) Object.assign(body, initial);
         }
         await api(recordPath(kind, row?.id), row ? 'PATCH' : 'POST', body, action.dataset);

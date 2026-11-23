@@ -5,6 +5,19 @@ import { Directory } from './Records';
 import { RecordDialog } from './dialogs';
 import { Session } from './data';
 afterEach(() => vi.unstubAllGlobals());
+test('editing the description preserves the exact activity timestamp', async () => {
+  const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+  vi.stubGlobal('fetch', fetcher);
+  const stamp = '2026-10-31T12:05:51.123456+00:00';
+  const row = { id: 'a', type: 'Call', description: 'Call', occurred_at: stamp };
+  render(<RecordDialog close={() => {}} action={{ kind: 'activities', type: 'edit', dataset: 0, row: row as never }} />);
+  fireEvent.change(screen.getByLabelText('Description *'), { target: { value: 'Called buyer' } });
+  fireEvent.click(screen.getByText('Save'));
+  await waitFor(() => expect(fetcher).toHaveBeenCalled());
+  const body = JSON.parse(fetcher.mock.calls[0][1].body);
+  expect(body.description).toBe('Called buyer');
+  expect(body.occurred_at ?? stamp).toBe(stamp);
+});
 test('search, status and sort reach the API and distinguish empty and no match', async () => {
   const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => [] });
   vi.stubGlobal('fetch', fetcher);

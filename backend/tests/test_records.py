@@ -58,6 +58,21 @@ def test_stale_preview_returns_all_current_blockers_without_detaching(api, stage
     assert api.get("/api/records/contacts/" + contact["id"]).json()["organization_id"] == org["id"]
 
 
+def test_unchanged_closed_deal_rejects_a_blank_actual_date(api):
+    org = add(api, "organizations", name="Client")
+    sale = deal(
+        api,
+        stage="Won",
+        actual_date="2026-09-18",
+        expected_date="2026-09-20",
+        organization_id=org["id"],
+    )
+    response = api.patch("/api/records/deals/" + sale["id"], json={"actual_date": None})
+    assert response.status_code == 422
+    assert response.json()["field"] == "actual_date"
+    assert api.get("/api/records/deals/" + sale["id"]).json()["actual_date"] == "2026-09-18"
+
+
 def test_deal_sorts_use_stage_order_calendar_dates_and_id_ties(api):
     org = add(api, "organizations", name="Sort buyer")
     first = deal(api, "Z", stage="Proposal", expected_date="2027-03-01", organization_id=org["id"])

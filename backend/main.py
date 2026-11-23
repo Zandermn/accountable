@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
+from datetime import date
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.api.backups import router as backup_routes
 from backend.api.records import router as record_routes
@@ -19,6 +21,9 @@ def create_app(database=None, seed=True):
         app.state.store.engine.dispose()
 
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+    app.add_middleware(
+        TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"], www_redirect=False
+    )
     app.include_router(record_routes)
     app.include_router(sales_routes)
     app.include_router(workbook_routes)
@@ -31,7 +36,7 @@ def create_app(database=None, seed=True):
     @app.get("/api/version")
     def version(request: Request):
         with request.app.state.store.read() as conn:
-            return dict(conn.execute(select(state)).mappings().one())
+            return dict(conn.execute(select(state)).mappings().one(), today=date.today().isoformat())
 
     return app
 

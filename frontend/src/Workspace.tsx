@@ -6,10 +6,11 @@ import { RecordDialog, type Action } from './dialogs';
 import { SalesWorkspace } from './Sales';
 import { Dashboard } from './Dashboard';
 import { Data } from './DataView';
+type Version = { dataset: number; revision: number; today: string };
 export function Workspace() {
   const [section, encoded] = useLocation().pathname.slice(1).split('/');
   const id = encoded && segmentId(encoded);
-  const [version, setVersion] = useState<{ dataset: number; revision: number }>();
+  const [version, setVersion] = useState<Version>();
   const [epoch, setEpoch] = useState(0),
     [error, setError] = useState(''),
     [action, setAction] = useState<Action>();
@@ -17,11 +18,14 @@ export function Workspace() {
   useEffect(() => {
     let live = true,
       sequence = 0;
+    let lastDate: string | undefined;
     async function check() {
       const seq = ++sequence;
       try {
-        const current = await api<{ dataset: number; revision: number }>('/version');
+        const current = await api<Version>('/version');
         if (live && seq === sequence) {
+          if (lastDate && current.today !== lastDate) refresh();
+          lastDate = current.today;
           setVersion(current);
           setError('');
         }
@@ -37,7 +41,7 @@ export function Workspace() {
       window.removeEventListener('focus', check);
       clearInterval(timer);
     };
-  }, []);
+  }, [refresh]);
   if (!version)
     return (
       <>

@@ -55,9 +55,13 @@ def find(conn, table, record_id):
     return dict(result) if result else None
 
 
-def get(conn, kind, record_id, trashed=False):
+def get(conn, kind, record_id, trashed=False, stale_action=False):
     row = find(conn, table_for(kind), record_id)
-    if row is None or bool(row["deleted_at"]) != trashed:
+    if row is None:
+        raise Problem("This record is unavailable. Refresh the list.", 404)
+    if bool(row["deleted_at"]) != trashed:
+        if stale_action:
+            raise Problem("This action no longer applies. Refresh the list.", 409)
         raise Problem("This record is unavailable. Refresh the list.", 404)
     return row
 
@@ -103,18 +107,26 @@ def deal_fields(conn, fields, old, today):
     stage = fields.get("stage")
     choice(fields, "stage", STAGES)
     changed = old and old["stage"] != stage
-    if changed or fields.get("probability") is None:
+    if changed or (not old and fields.get("probability") is None):
         fields["probability"] = STAGES[stage]
     integer(fields, "value_cents", 9007199254740991)
     integer(fields, "probability", 100)
+    if changed:
+        if (stage not in OPEN or old["stage"] not in OPEN) and not fields.get("expected_date"):
+            fields["expected_date"] = old["expected_date"]
+        if stage not in OPEN and old["stage"] not in OPEN and not fields.get("actual_date"):
+            fields["actual_date"] = old["actual_date"]
     calendar(fields, "expected_date")
     if stage in OPEN:
         fields["actual_date"] = None
         if not fields.get("expected_date"):
             raise Problem("Enter the expected close date.", field="expected_date")
     else:
-        fields["actual_date"] = fields.get("actual_date") or today.isoformat()
+        if not old or changed:
+            fields["actual_date"] = fields.get("actual_date") or today.isoformat()
         calendar(fields, "actual_date")
+        if not fields.get("actual_date"):
+            raise Problem("Enter the actual close date.", field="actual_date")
     if not fields.get("organization_id") and not fields.get("contact_id"):
         raise Problem("Choose an organization or main contact.", field="organization_id")
     require_link(conn, contacts, fields, "contact_id")
@@ -175,10 +187,7 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
         if not old or not fields.get("follow_up"):
             fields["done"] = False
     if old:
-        if (
-            kind in ("contacts", "deals")
-            and fields.get("organization_id") != old["organization_id"]
-        ):
+        if kind in ("contacts", "deals") and "organization_id" in supplied:
             key = detached.c.contact_id if kind == "contacts" else detached.c.deal_id
             conn.execute(delete(detached).where(key == record_id))
         conn.execute(

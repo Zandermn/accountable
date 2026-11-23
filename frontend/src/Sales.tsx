@@ -284,10 +284,15 @@ export function SalesWorkspace({ id, onBoard, embedded = false }: { id: string; 
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();
+                        const cards = e.currentTarget.querySelectorAll<HTMLElement>('.deal-card');
+                        const next = Array.from(cards).find((card) => {
+                          const bounds = card.getBoundingClientRect();
+                          return e.clientY < bounds.top + bounds.height / 2;
+                        });
                         drop({
                           id: e.dataTransfer.getData('text/plain') || dragged.current,
                           stage,
-                          before: null,
+                          before: next?.dataset.dealId ?? null,
                           revision: board.revision,
                         });
                       }}
@@ -310,27 +315,12 @@ export function SalesWorkspace({ id, onBoard, embedded = false }: { id: string; 
                         {lane.cards.map((r, index) => (
                           <article
                             className={'deal-card ' + (selected === r.id ? 'is-selected-deal' : '')}
+                            data-deal-id={r.id}
                             key={r.id}
                             draggable
                             onDragStart={(e) => {
                               dragged.current = r.id;
                               e.dataTransfer.setData('text/plain', r.id);
-                            }}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => {
-                              e.stopPropagation();
-                              e.preventDefault();
-                              const bounds = e.currentTarget.getBoundingClientRect();
-                              const before =
-                                e.clientY > bounds.top + bounds.height / 2
-                                  ? lane.cards[index + 1]?.id
-                                  : r.id;
-                              drop({
-                                id: e.dataTransfer.getData('text/plain') || dragged.current,
-                                stage,
-                                before: before || null,
-                                revision: board.revision,
-                              });
                             }}
                           >
                             <button

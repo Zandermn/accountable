@@ -1,7 +1,7 @@
 from io import BytesIO
 
 import pytest
-from conftest import add, remove
+from conftest import add, deal, remove
 from openpyxl import Workbook, load_workbook
 
 HEADERS = {
@@ -122,3 +122,41 @@ def test_revalidate_preview_after_write_or_workbook_change(api):
     assert [r["name"] for r in api.get("/api/records/organizations").json()] == ["Other"]
     assert remove(api, "organizations", other).is_success
     assert send(api, workbook({"Organizations": [[other["id"], "Retry"]]})).status_code == 409
+
+
+def test_import_preserves_close_dates_across_stage_changes(api):
+    org = add(api, "organizations", name="Client")
+    sale = deal(api, organization_id=org["id"], expected_date="2025-09-20")
+    for stage, actual in [("Won", "2025-09-18"), ("Lost", None), ("New", None)]:
+        row = [sale["id"], "Renewal", stage, 100, None, None, actual, org["id"]]
+        response = apply(api, workbook({"Deals": [row]}))
+        assert response.is_success, response.text
+        saved = api.get("/api/records/deals/" + sale["id"]).json()
+        assert saved["expected_date"] == "2025-09-20"
+        assert saved["actual_date"] == (None if stage == "New" else "2025-09-18")
+
+
+def test_import_rejects_a_blank_close_date_without_a_stage_change(api):
+    org = add(api, "organizations", name="Client")
+    sale = deal(
+        api,
+        stage="Won",
+        actual_date="2026-09-18",
+        expected_date="2026-09-20",
+        organization_id=org["id"],
+    )
+    row = [sale["id"], "Renewal", "Won", 100, 100, "2026-09-20", None, org["id"], None]
+    response = send(api, workbook({"Deals": [row]}))
+    assert response.status_code == 422
+    assert response.json()["field"] == "Actual close date"
+    assert api.get("/api/records/deals/" + sale["id"]).json()["actual_date"] == "2026-09-18"
+
+
+def test_export_reports_text_that_excel_cannot_store(api):
+    note = "x" * 32768
+    org = add(api, "organizations", name="Client", notes=note)
+    response = api.get("/api/workbook/export")
+    assert response.status_code == 422
+    assert response.json()["field"] == "Notes"
+    assert response.json()["sheet"] == "Organizations"
+    assert api.get("/api/records/organizations/" + org["id"]).json()["notes"] == note

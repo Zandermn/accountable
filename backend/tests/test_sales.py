@@ -5,6 +5,15 @@ from conftest import add, deal
 from backend.services import sales
 
 
+def test_clearing_manual_probability_rejects_the_edit(api):
+    org = add(api, "organizations", name="Client")
+    sale = deal(api, organization_id=org["id"], probability=42)
+    url = "/api/records/deals/" + sale["id"]
+    response = api.patch(url, json={"probability": None})
+    assert response.status_code == 422 and response.json()["field"] == "probability"
+    assert api.get(url).json()["probability"] == 42
+
+
 def test_move_placement_and_stale_event_idempotency(api):
     org = add(api, "organizations", name="Buyers")
     a, b, c = [deal(api, n, organization_id=org["id"], probability=37) for n in "ABC"]

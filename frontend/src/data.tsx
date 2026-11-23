@@ -88,6 +88,7 @@ export interface Row {
   done: boolean;
   kind: string;
   deleted_at: string;
+  deletion: string;
   related: LinkRow[];
   timeline: Row[];
   former: Record<string, LinkRow>;

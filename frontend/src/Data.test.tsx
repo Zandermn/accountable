@@ -2,6 +2,15 @@ import { expect, test, vi, afterEach } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { Data } from './DataView';
 afterEach(() => vi.unstubAllGlobals());
+test('shows the export field error in Data', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => ({
+    ok: path === '/api/backups',
+    json: async () => path === '/api/backups' ? [] : { message: 'Check Notes on record A.' },
+  })));
+  render(<Data />);
+  fireEvent.click(screen.getByRole('button', { name: 'Export workbook' }));
+  expect(await screen.findByRole('alert')).toHaveTextContent('Check Notes on record A.');
+});
 test('cancelling either backup dialog keeps the selected backup', async () => {
   const fetcher = vi.fn(async (path: string) => ({
     ok: true,

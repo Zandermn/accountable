@@ -51,13 +51,21 @@ def export(conn, template=False):
         if template:
             continue
         table = TABLES[name.lower()]
-        for row in conn.execute(
+        rows = conn.execute(
             select(table).where(table.c.deleted_at.is_(None)).order_by(table.c.id)
-        ).mappings():
-            values = [row[k] / 100 if k == "value_cents" else row[k] for k in columns.values()]
-            sheet.append(values)
-            for cell in sheet[sheet.max_row]:
-                if isinstance(cell.value, str):
+        ).mappings()
+        for index, row in enumerate(rows, 2):
+            for position, (header, key) in enumerate(columns.items(), 1):
+                value = row[key]
+                if isinstance(value, str) and len(value) > 32767:
+                    raise Problem(
+                        f"Excel can store up to 32,767 characters per cell. "
+                        f"Check {header} on record {row['id']} or save a full backup.",
+                        field=header, sheet=name, row=index,
+                    )
+                cell = sheet.cell(index, position)
+                cell.value = value / 100 if key == "value_cents" else value
+                if isinstance(value, str):
                     cell.data_type = "s"
     stream = BytesIO()
     book.save(stream)

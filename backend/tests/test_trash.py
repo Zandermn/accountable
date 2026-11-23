@@ -2,7 +2,36 @@ from conftest import add, deal, remove
 
 
 def restore(api, kind, row, **choices):
-    return api.post(f"/api/trash/{kind}/{row['id']}", json=choices)
+    entry = next(r for r in api.get("/api/trash").json() if r["id"] == row["id"])
+    return api.post(f"/api/trash/{kind}/{row['id']}", json={"deletion": entry["deletion"], **choices})
+
+
+def test_repeated_delete_and_restore_are_conflicts(api):
+    org = add(api, "organizations", name="Client")
+    url = "/api/records/organizations/" + org["id"]
+    preview = api.get(url + "/delete-preview").json()
+    body = {"revision": preview["revision"]}
+    assert api.request("DELETE", url, json=body).is_success
+    assert api.request("DELETE", url, json=body).status_code == 409
+
+    entry = api.get("/api/trash").json()[0]
+    restore_body = {"deletion": entry["deletion"]}
+    restore_url = "/api/trash/organizations/" + org["id"]
+    assert api.post(restore_url, json=restore_body).is_success
+    assert api.post(restore_url, json=restore_body).status_code == 409
+    assert api.get(url).is_success
+
+
+def test_old_restore_cannot_reverse_a_new_deletion(api):
+    org = add(api, "organizations", name="Client")
+    assert remove(api, "organizations", org).is_success
+    first = api.get("/api/trash").json()[0]
+    assert restore(api, "organizations", org).is_success
+    assert remove(api, "organizations", org).is_success
+    for body in [{"deletion": first["deletion"]}, {}]:
+        response = api.post("/api/trash/organizations/" + org["id"], json=body)
+        assert response.status_code == 409
+    assert restore(api, "organizations", org).is_success
 
 
 def test_detachment_preserves_later_changes_and_contact_choice(api):
@@ -24,6 +53,19 @@ def test_detachment_preserves_later_changes_and_contact_choice(api):
     rows = {r["id"]: r for r in api.get("/api/records/contacts").json()}
     assert [rows[p["id"]]["organization_id"] for p in people] == [None, None, org["id"]]
     assert api.get("/api/records/deals/" + sale["id"]).json()["organization_id"] == org["id"]
+
+
+def test_explicit_blank_links_survive_organization_restore(api):
+    org = add(api, "organizations", name="Original")
+    person = add(api, "contacts", name="Buyer", status="Lead", organization_id=org["id"])
+    sale = deal(api, organization_id=org["id"], contact_id=person["id"])
+    assert remove(api, "organizations", org).is_success
+    for kind, row in (("contacts", person), ("deals", sale)):
+        response = api.patch(f"/api/records/{kind}/" + row["id"], json={"organization_id": None})
+        assert response.is_success
+    assert restore(api, "organizations", org).is_success
+    for kind, row in (("contacts", person), ("deals", sale)):
+        assert api.get(f"/api/records/{kind}/" + row["id"]).json()["organization_id"] is None
 
 
 def test_cascade_restores_only_own_deletion_and_preserves_completion(api):

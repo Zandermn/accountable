@@ -14,6 +14,28 @@ export function Data() {
   const [error, setError] = useState(''),
     [message, setMessage] = useState(''),
     [busy, setBusy] = useState(false);
+  async function downloadWorkbook() {
+    setError('');
+    setMessage('');
+    setBusy(true);
+    try {
+      const response = await fetch('/api/workbook/export');
+      if (!response.ok) {
+        const problem = await response.json();
+        throw new Error(problem.message || 'Export failed. Try again.');
+      }
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'accountable-export.xlsx';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   async function exchange(apply: boolean) {
     if (!file || busy) return;
     setBusy(true);
@@ -82,9 +104,9 @@ export function Data() {
             <a className="button subtle" href="/api/workbook/template" download>
               Download template
             </a>
-            <a className="button subtle" href="/api/workbook/export" download>
+            <button className="button subtle" disabled={busy} onClick={downloadWorkbook}>
               Export workbook
-            </a>
+            </button>
           </div>
           <label>
             Workbook{' '}

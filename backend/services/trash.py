@@ -27,7 +27,7 @@ def linked(conn, table, field, record_id):
 
 
 def preview(conn, kind, record_id):
-    row = get(conn, kind, record_id)
+    row = get(conn, kind, record_id, stale_action=True)
     blockers, clear, cascade = [], [], []
     if kind == "organizations":
         clear = [
@@ -114,8 +114,10 @@ def trash_list(conn, kind=None, direction="desc"):
 
 
 def restore(conn, kind, record_id, choices):
-    row = get(conn, kind, record_id, trashed=True)
+    row = get(conn, kind, record_id, trashed=True, stale_action=True)
     operation = row["deletion"]
+    if choices.get("deletion") != operation:
+        raise Problem("This Trash entry changed. Close this dialog and select Restore again.", 409)
     table = table_for(kind)
     values = {"deleted_at": None, "deletion": None, "updated_at": now()}
     former = recovery(conn, kind, row)

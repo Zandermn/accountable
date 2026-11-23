@@ -2,6 +2,28 @@
 
 The local CRM is implemented. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app keeps records and board order in SQLite.
 
+## Review policy
+
+The [review policy](REVIEW.md) defines three checks before merge and when a finding blocks the merge. It covers partial workbook imports, local access to sales records, and recovery from data loss.
+
+## MVP review against main
+
+The review of `ae4d0f1` found nine defects and one sign-off gap.
+
+- Vite could serve local CRM files. FastAPI accepted untrusted host names.
+- Workbook stage changes could replace the actual close date or lose the saved expected date. Export could truncate a long note.
+- An old Restore dialog could reverse a later deletion of the same record.
+- Dropping a deal in the gap between cards could move it to the end of the column.
+- Clearing Probability could replace a manual value with the stage default. Editing an activity description could also change its occurrence time.
+- An open Dashboard could keep the previous day's dates and month range.
+- The plan requires disconnected checks on Windows, macOS, and Linux. The earlier Windows check kept the network adapter enabled.
+
+## Review follow-up verification on Windows (2026-11-23)
+
+The API accepts only local app host names. Repeated delete and restore actions return conflicts. An explicit blank organization link stays blank when the former organization is restored. An unchanged closed deal rejects a blank actual close date instead of replacing its history with today's date. Regression tests cover these cases in the record API and workbook preview.
+
+`npm test` passed: 11 Vitest, 40 pytest, and 10 Playwright tests. macOS and Linux setup, offline startup, and runtime checks remain outstanding. This run does not complete the disconnected cross-platform sign-off.
+
 ## Sidebar icons
 
 Each of the seven sidebar links has a distinct Lucide icon and a visible text label. The app bundles the icons for offline use. Playwright verified all seven in Chrome on Windows.
