@@ -79,3 +79,4 @@ Thumbs.db
 logs/
 *.log
 tmp/
+data/

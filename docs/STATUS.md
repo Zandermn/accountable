@@ -1,4 +1,52 @@
-MVP implementation has not started.
+# Accountable MVP
+
+The local CRM is implemented. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app keeps records and board order in SQLite.
+
+## One-time setup
+
+Install Node.js 26, uv, and Google Chrome. Node.js 24 or later is supported. Open a terminal in this repository. With internet access, run these commands.
+
+```sh
+uv python install 3.12
+uv sync --locked
+npm ci
+```
+
+Start the app with `npm run dev`. Open the local URL printed by Vite, normally `http://127.0.0.1:5173`. Keep the terminal open while you use the app. Press Ctrl+C to stop both servers. Startup uses the installed dependencies and local fonts.
+
+The first launch fills `data/accountable.db` with sample records. Each later launch opens the saved database. Backups go in `data/backups/`. Set `ACCOUNTABLE_DB` and `ACCOUNTABLE_BACKUPS` to use other locations. Use the same settings for the app and its data commands.
+
+## Commands
+
+| Command | Result |
+| --- | --- |
+| `npm test` | Run Vitest, pytest, and Playwright in order. Chrome starts the app on temporary ports. Each browser case gets a separate database and backup directory. |
+| `npm run test:ui`, `npm run test:api`, `npm run test:e2e` | Run one test suite. |
+| `npm run build` | Check TypeScript and build the frontend in `frontend/dist/`. |
+| `npm run save` | Save a complete backup, including Trash, links, notes, follow-ups, stage history, and board order. The command prints the backup ID and file path. |
+| `npm run load -- <backup-id>` | Replace `<backup-id>` with the ID printed by save. The command validates that backup, saves the current data, and loads the selected backup. |
+| `npm run seed` | Type `yes` to save a full backup and replace the current data with fresh samples. Press Enter to cancel. |
+
+Use **Data** to download the workbook template, preview an import, export active sales records, or delete a backup. Backup deletion requires two confirmations. Use **Trash** to restore an individual record.
+
+## Windows verification · 2026-11-22
+
+Tested the uncommitted working tree on branch `MVP`, based on `91e45facfac1830fba51b05d494f32a94f80225c`. The requested OS scope was Windows. The host reported build 26300.9974 (26H2). The run used Node.js 26.13.1, npm 11.7.0, Python 3.12.12, uv 0.11.23, and installed Google Chrome 145.0.7632.110.
+
+| Check | Result |
+| --- | --- |
+| `npm test` with the app stopped | 8 frontend tests, 31 backend tests, and 10 Chrome tests passed. |
+| Production build | TypeScript and Vite passed. |
+| Sales walkthrough | Opened all five sales views, Trash, and Data. Followed an overdue task to its contact, sorted deals by probability, and checked recent history. Verified notes, stage moves, and saved changes after restart. |
+| Layout and keyboard | Inspected the board and deal panel at 1280 × 900 and 1440 × 900. The selected card stayed visible. A keyboard move saved the new order. Closing the panel returned focus to the card. Monthly charts had keyboard-accessible values. |
+| Offline operation | Ran `npm run dev` with installed dependencies and npm offline mode. Chrome blocked non-loopback browser requests. Both fonts and charts loaded. A new organization survived restart. The walkthrough recorded zero external requests and zero browser errors. The network adapter stayed enabled. |
+| Recovery and exchange | Executed save, load, cancelled reset, and confirmed reset against the browser test database. Checked both backup confirmations. Imported linked records, edited a deal, and checked the downloaded workbook. Failure tests verified rollback and the dataset revision. |
+
+The walkthrough writes screenshots under `test-results/`. Pytest reports one upstream Starlette deprecation warning for its HTTP test client.
+
+## MVP implementation plan
+
+- Wrote and reviewed [the MVP implementation plan](plan.md). It maps file changes to work phases, defines when each phase is complete, and lists unit, integration, browser, and offline sign-off checks.
 
 ## MVP specification
 
