@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Learn HTML, CSS, TypeScript, React, Vite, routing, and charts in Accountable."><title>Lesson 4: React frontend | Accountable</title><link rel="stylesheet" href="assets/tutorial.css"><script src="assets/tutorial.js" defer></script></head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Accountable<small>Technology breakdown</small></span></a><nav class="header-links" aria-label="Course links"><a href="index.html">Start here</a><a href="reference.html">Quick reference</a><a href="../TECH_STACK.md">Stack document</a></nav></header>
+<div class="layout"><aside class="sidebar"><div class="sidebar-inner"><nav aria-label="Lessons"><p class="nav-label">Learn in order</p><ol class="lesson-list"><li><a href="lesson-01-web-foundations.html">Web foundations</a></li><li><a href="lesson-02-programming.html">Programming basics</a></li><li><a href="lesson-03-tools.html">Tools and setup</a></li><li><a href="lesson-04-frontend.html" aria-current="page">React frontend</a></li><li><a href="lesson-05-backend.html">Python backend</a></li><li><a href="lesson-06-data.html">Data and APIs</a></li><li><a href="lesson-07-architecture.html">Project architecture</a></li><li><a href="lesson-08-testing.html">Testing and quality</a></li><li><a href="lesson-09-practice.html">Guided practice</a></li></ol></nav><p class="side-note">Course 04 of 09 · About 40 minutes</p></div></aside>
+<main id="main">
+<section class="hero compact"><p class="eyebrow">Lesson 04 · Frontend</p><h1>Build the browser interface</h1><p class="lead">See how HTML, CSS, TypeScript, and React become Accountable's tables, forms, dashboard, and pipeline.</p><ul class="meta"><li>About 40 minutes</li><li>Prerequisite: Lessons 1–3</li><li>Main folder: frontend/</li></ul><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">You type one character into Search and the table changes. What remembered your text, requested matching records, and updated only the necessary parts of the page?</p><p class="question-answer"><strong>Why it matters:</strong> Once you understand components, state, and requests, the interface stops feeling magical. You can trace a visible problem back to the component that owns it.</p></div></section>
+<nav class="toc lesson-section" aria-labelledby="contents"><h2 id="contents">In this lesson</h2><ol><li><a href="#html-css">HTML, CSS, and the DOM</a></li><li><a href="#typescript">TypeScript and TSX</a></li><li><a href="#react">React components and rendering</a></li><li><a href="#state">State and hooks</a></li><li><a href="#routing">Routing and API requests</a></li><li><a href="#vite">Vite and the build</a></li><li><a href="#features">Charts, drag and drop, and access</a></li><li><a href="#files">Frontend file tour</a></li><li><a href="#review">Review</a></li></ol></nav>
+
+<section class="lesson-section" id="html-css"><span class="section-number">01</span><h2>HTML, CSS, JavaScript, and the DOM</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How does the browser know that Save is a button you can activate, not just green text that happens to look clickable?</p><p class="question-answer"><strong>The answer:</strong> HTML supplies meaning and behavior, CSS supplies appearance, and JavaScript changes the live DOM when something happens.</p></div>
+<p>These browser technologies have different jobs:</p><ul><li><strong>HTML</strong> defines structure and meaning: headings, buttons, forms, tables, and links.</li><li><strong>CSS</strong> controls presentation: color, spacing, layout, and responsive behavior.</li><li><strong>JavaScript</strong> controls behavior: events, requests, calculations, and page updates.</li></ul>
+<div class="code-block"><span class="code-label">Small HTML and CSS example</span><pre><code>&lt;button class="primary"&gt;Save contact&lt;/button&gt;
+
+&lt;style&gt;
+  .primary {
+    background: #06D6A0;
+    color: #073B4C;
+    border-radius: 8px;
+  }
+&lt;/style&gt;</code></pre></div>
+<p>The browser parses HTML into the <span class="term">DOM</span> (Document Object Model), a live tree of objects. JavaScript can read and change this tree. React manages many of those changes for the app.</p>
+<p>An HTML <span class="term">element</span> has a tag and can have attributes. For example, <code>aria-label="Search contacts"</code> gives a control an accessible name. Semantic elements such as <code>&lt;button&gt;</code> and <code>&lt;table&gt;</code> provide useful browser behavior.</p>
+<p>Accountable's styles are custom CSS in <span class="path">frontend/src/style.css</span>. There is no CSS framework. The file defines brand variables, grid layouts, cards, dialogs, tables, keyboard focus, and screen-size rules. Fonts are bundled in <span class="path">frontend/public/fonts/</span> for offline use.</p></section>
+
+<section class="lesson-section" id="typescript"><span class="section-number">02</span><h2>TypeScript: JavaScript with type checks</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">What if you type <code>deal.value</code> when the real property is <code>value_cents</code>? Would you prefer to discover that during development or after a user clicks?</p><p class="question-answer"><strong>The answer:</strong> TypeScript checks value shapes before execution. It catches many mismatches early, while backend validation handles untrusted runtime data.</p></div>
+<p><span class="term">TypeScript</span> adds static types to JavaScript. <span class="term">Static</span> means the tool checks types before the program runs. TypeScript can catch a misspelled property or a wrong value shape during development.</p>
+<div class="code-block"><span class="code-label">Types for a deal</span><pre><code>type Deal = {
+  id: string;
+  name: string;
+  value_cents: number;
+  late: boolean;
+  organization_id: string | null;
+};
+
+function expectedRevenue(deal: Deal, probability: number): number {
+  return deal.value_cents * probability / 100;
+}</code></pre></div>
+<p><code>string | null</code> is a <span class="term">union type</span>: the value can be a string or null. An <code>interface</code> is another way to describe an object shape. Accountable uses both <code>type</code> and <code>interface</code>.</p>
+<p><span class="term">TSX</span> lets TypeScript contain React UI expressions. Browsers do not execute TypeScript or TSX directly. Vite transforms them into JavaScript for development and production.</p>
+<div class="callout remember"><strong>Types do not validate HTTP data at runtime:</strong> A TypeScript annotation disappears in the generated JavaScript. The Python backend must still validate every request. This is why both sides have checks with different jobs.</div>
+<p>The frontend uses strict checking in <span class="path">frontend/tsconfig.json</span>. It targets ES2022, a JavaScript language version, and includes DOM types for browser APIs. <code>npm run build</code> runs <code>tsc --noEmit</code>: type-check without writing JavaScript from tsc itself. Vite then builds the app.</p></section>
+
+<section class="lesson-section" id="react"><span class="section-number">03</span><h2>React components, props, and rendering</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">Seven views need the same navigation, buttons, record rows, and dialogs. Do you copy their HTML into every page?</p><p class="question-answer"><strong>The answer:</strong> React components package reusable UI and behavior. Props customize them, and rendering updates the DOM when their inputs change.</p></div>
+<p><span class="term">React 19</span> builds an interface from <span class="term">components</span>: reusable functions that return UI descriptions. A component can contain other components. <span class="term">Props</span> are inputs passed from a parent component.</p>
+<div class="code-block"><span class="code-label">A small TSX component</span><pre><code>type BadgeProps = { label: string; late: boolean };
+
+function Badge({ label, late }: BadgeProps) {
+  return &lt;span className={late ? 'late' : 'status'}&gt;{label}&lt;/span&gt;;
+}
+
+export function DealName() {
+  return (
+    &lt;article&gt;
+      &lt;h2&gt;Renewal&lt;/h2&gt;
+      &lt;Badge label="Late" late={true} /&gt;
+    &lt;/article&gt;
+  );
+}</code></pre></div>
+<p>TSX looks like HTML but uses JavaScript expressions inside braces. It uses <code>className</code> for a CSS class. A parent passes <code>label</code> and <code>late</code> as props.</p>
+<p>React <span class="term">renders</span> components to work out what the DOM should contain. When state or props change, React renders again and updates the necessary DOM. A list item needs a stable <code>key</code>, usually the record ID, so React can match items between renders.</p>
+<div class="code-block"><span class="code-label">The application's entry point</span><pre><code>createRoot(document.getElementById('root')!).render(
+  &lt;BrowserRouter&gt;
+    &lt;App /&gt;
+  &lt;/BrowserRouter&gt;
+);</code></pre></div>
+<p><span class="path">frontend/index.html</span> provides <code>&lt;div id="root"&gt;</code>. <span class="path">frontend/src/main.tsx</span> mounts React there. <span class="path">App.tsx</span> creates the navigation shell. <span class="path">Workspace.tsx</span> selects the current view.</p></section>
+
+<section class="lesson-section" id="state"><span class="section-number">04</span><h2>State, events, effects, and context</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">What should the screen remember while you type a note, wait for the API, open a dialog, or switch to another deal?</p><p class="question-answer"><strong>The answer:</strong> State remembers changing values, events react to users, effects synchronize requests and timers, and context shares session values across components.</p></div>
+<p><span class="term">State</span> is data that a component remembers between renders. Examples include search text, a selected deal, an open dialog, and a busy flag.</p>
+<div class="code-block"><span class="code-label">A controlled search input</span><pre><code>const [search, setSearch] = useState('');
+
+&lt;input
+  type="search"
+  value={search}
+  onChange={(event) =&gt; setSearch(event.target.value)}
+/&gt;</code></pre></div>
+<p><code>useState</code> returns the current value and a setter. Calling the setter requests a render. The input is <span class="term">controlled</span> because React state supplies its value and its change event updates that state.</p>
+<div class="table-wrap"><table><thead><tr><th>Hook or tool</th><th>Job</th><th>Accountable example</th></tr></thead><tbody>
+<tr><td><code>useState</code></td><td>Remember local component state.</td><td>Search, form drafts, dialog state.</td></tr>
+<tr><td><code>useEffect</code></td><td>Synchronize with something outside React.</td><td>Fetch data, listen for window focus, start a timer.</td></tr>
+<tr><td><code>useContext</code></td><td>Read shared values without passing every prop.</td><td>Session dataset, refresh function, record commands.</td></tr>
+<tr><td><code>useRef</code></td><td>Keep a mutable value without causing a render.</td><td>Remember dragged card or focus target.</td></tr>
+<tr><td><code>useCallback</code></td><td>Keep a function reference stable between renders.</td><td>The shared refresh function.</td></tr>
+</tbody></table></div>
+<p>The custom <code>useRead()</code> hook in <span class="path">frontend/src/data.tsx</span> calls the API when its path or refresh epoch changes. Its effect cleanup marks an old request inactive. This prevents an old response from updating a view after the request is no longer relevant.</p>
+<p>Events connect users to logic. A form <code>onSubmit</code> calls <code>preventDefault()</code> to stop a full browser page submission, then sends JSON through the API. A failed request keeps entered values and shows an error. A successful write calls the shared refresh function.</p>
+<div class="callout"><strong>Temporary versus saved:</strong> React state can hold an unsaved note draft. Only a successful backend write makes the note persistent in SQLite.</div></section>
+
+<section class="lesson-section" id="routing"><span class="section-number">05</span><h2>React Router and API requests</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How can you open or share a link to one deal without reloading the whole application or losing the selected view?</p><p class="question-answer"><strong>The answer:</strong> React Router maps URLs to views and updates them in the browser. The shared API helper separately retrieves that deal's saved data.</p></div>
+<p><span class="term">React Router</span> keeps the visible view synchronized with the browser URL. Accountable uses <code>BrowserRouter</code>, <code>Link</code>, <code>NavLink</code>, <code>useLocation</code>, and <code>useNavigate</code>.</p>
+<div class="table-wrap"><table><thead><tr><th>URL</th><th>Selected UI</th></tr></thead><tbody>
+<tr><td><code>/</code></td><td>Dashboard and embedded pipeline</td></tr>
+<tr><td><code>/organizations</code>, <code>/contacts</code>, <code>/deals</code></td><td>Searchable and sortable directories</td></tr>
+<tr><td><code>/deals/&lt;id&gt;</code></td><td>Deal workspace with notes and timeline</td></tr>
+<tr><td><code>/pipeline?deal=&lt;id&gt;</code></td><td>Board with the selected deal panel</td></tr>
+<tr><td><code>/trash</code>, <code>/data</code></td><td>Recovery and data tools</td></tr>
+</tbody></table></div>
+<p>This is client-side navigation. Clicking a React link changes the URL and renders another view without loading a whole new HTML document.</p>
+<p>The shared generic function <code>api&lt;T&gt;()</code> in <span class="path">data.tsx</span> wraps <code>fetch()</code>:</p><ul><li>Adds <code>/api</code> to the endpoint path.</li><li>Serializes ordinary bodies with <code>JSON.stringify()</code>.</li><li>Leaves <code>FormData</code> intact for workbook uploads.</li><li>Adds the <code>X-Dataset</code> header when supplied.</li><li>Parses the JSON response and throws a <code>Failure</code> for an error status.</li></ul>
+<p>IDs are encoded before they go into a URL. The <code>idSegment()</code> and <code>segmentId()</code> helpers also protect unusual workbook IDs that contain slashes or reserved path text.</p></section>
+
+<section class="lesson-section" id="vite"><span class="section-number">06</span><h2>Vite: development server, proxy, and build</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">The frontend is on port 5173 and the API is on 8000. How can browser code simply call <code>/api/dashboard</code> without managing two origins?</p><p class="question-answer"><strong>The answer:</strong> Vite serves the frontend and forwards API paths to FastAPI. It also transforms TSX for development and bundles optimized production files.</p></div>
+<p><span class="term">Vite</span> transforms frontend source and serves it during development. It supports fast updates and produces optimized static files for production.</p>
+<p>During local development, the browser uses one origin, normally <code>http://127.0.0.1:5173</code>. Vite proxies paths beginning <code>/api</code> to FastAPI at <code>http://127.0.0.1:8000</code>. A <span class="term">proxy</span> forwards a request to another server.</p>
+<ol class="flow"><li>Browser: /api/dashboard</li><li>Vite proxy on port 5173</li><li>FastAPI on port 8000</li></ol>
+<p>This gives the frontend same-origin API URLs and avoids browser cross-origin configuration. The setting is in <span class="path">frontend/vite.config.ts</span>. <code>ACCOUNTABLE_API_PORT</code> can change the target.</p>
+<div class="code-block"><span class="code-label">Build command chain</span><pre><code>npm run build
+→ npm run build --workspace frontend
+→ tsc --noEmit &amp;&amp; vite build
+→ frontend/dist/</code></pre></div>
+<p><span class="path">frontend/dist/</span> is generated output, not the source you edit. The current local workflow normally uses <code>npm run dev</code>. The build command is also a useful type and bundling check.</p></section>
+
+<section class="lesson-section" id="features"><span class="section-number">07</span><h2>Charts, pipeline movement, and accessibility</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">A chart looks clear and a card moves easily with a mouse. What happens if someone cannot see the colors or uses only a keyboard?</p><p class="question-answer"><strong>The answer:</strong> Text values, semantic labels, visible focus, and the Move dialog provide equivalent paths. Chart.js and native drag events supply the visual and pointer interactions.</p></div>
+<h3>Chart.js and react-chartjs-2</h3><p><span class="term">Chart.js</span> draws charts on an HTML canvas. <span class="term">react-chartjs-2</span> supplies React wrappers. <span class="path">Dashboard.tsx</span> registers only the chart pieces it needs, then uses <code>Line</code> for won revenue and <code>Bar</code> for monthly wins. A <code>&lt;details&gt;</code> element also exposes the monthly values as text.</p>
+<h3>Native drag and drop plus keyboard controls</h3><p>The pipeline uses browser drag events in <span class="path">Sales.tsx</span>. A card stores its ID with <code>dataTransfer</code>. Drop logic calculates the target stage and the card before which it belongs. The <strong>Move</strong> button opens a form with stage and position controls. This provides a keyboard path for the same operation.</p>
+<p>The frontend sends the target placement and board revision to <code>POST /api/pipeline/move</code>. The backend owns the saved order. The frontend refreshes after success or failure so the display returns to the saved state.</p>
+<h3>Accessibility</h3><p><span class="term">Accessibility</span> means people can use the app with different abilities and input methods. Accountable uses labels, semantic buttons, visible focus, dialog focus management, status text, and keyboard movement. Color is not the only signal for Late or Overdue.</p>
+<div class="callout practice"><strong>Try without a mouse:</strong> In the running app, press <kbd>Tab</kbd> to move between controls. Use <kbd>Enter</kbd> or <kbd>Space</kbd> to activate buttons. On a pipeline card, open <strong>Move</strong> and inspect the stage and position fields.</div></section>
+
+<section class="lesson-section" id="files"><span class="section-number">08</span><h2>Frontend file tour</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">The Deals table has a formatting problem while the Pipeline works. Which component should you inspect, and where is the shared money formatter?</p><p class="question-answer"><strong>The answer:</strong> The file tour connects visible features to their modules. Start with the view, then follow imports to shared data, formatting, and dialog code.</p></div>
+<div class="table-wrap"><table><thead><tr><th>File</th><th>Responsibility</th></tr></thead><tbody>
+<tr><td><span class="path">src/main.tsx</span></td><td>Mount React and the router.</td></tr>
+<tr><td><span class="path">src/App.tsx</span></td><td>Brand, navigation rail, and application shell.</td></tr>
+<tr><td><span class="path">src/Workspace.tsx</span></td><td>Choose views, poll dataset version, share session and dialogs.</td></tr>
+<tr><td><span class="path">src/data.tsx</span></td><td>API client, shared types, formatting, paths, and data-reading hook.</td></tr>
+<tr><td><span class="path">src/Records.tsx</span></td><td>Directories, details, timelines, and Trash.</td></tr>
+<tr><td><span class="path">src/dialogs.tsx</span></td><td>Record forms, validation display, deletion, restore, and modal behavior.</td></tr>
+<tr><td><span class="path">src/Sales.tsx</span></td><td>Pipeline cards, movement, totals, deal panel, and notes.</td></tr>
+<tr><td><span class="path">src/Dashboard.tsx</span></td><td>Charts, funnel, follow-ups, and recent activity.</td></tr>
+<tr><td><span class="path">src/DataView.tsx</span></td><td>Workbook exchange and backup deletion confirmations.</td></tr>
+<tr><td><span class="path">src/*.test.tsx</span></td><td>Frontend unit tests beside the features.</td></tr>
+<tr><td><span class="path">public/fonts/</span></td><td>Local fonts and their licenses.</td></tr>
+</tbody></table></div></section>
+
+<section class="lesson-section" id="review"><span class="section-number">09</span><h2>Check your understanding</h2>
+<details class="answer"><summary>1. What is the difference between a prop and state?</summary><p>A prop comes from a parent component. State belongs to a component or its shared state system. Both can cause rendering when their values change.</p></details>
+<details class="answer"><summary>2. Does TypeScript replace backend validation?</summary><p>No. It checks frontend source before execution. A request can contain any data, so the backend performs runtime validation.</p></details>
+<details class="answer"><summary>3. Why does Vite proxy <code>/api</code>?</summary><p>It lets the browser call the same origin as the frontend while Vite forwards API requests to the separate FastAPI process.</p></details>
+<details class="answer"><summary>4. Why does the board need a non-drag control?</summary><p>Drag-only interaction excludes keyboard users and can be difficult for other users. The Move dialog provides equivalent stage and position controls.</p></details>
+</section>
+<div class="pager"><a href="lesson-03-tools.html"><small>Previous</small>Lesson 3: Tools and setup</a><a class="next" href="lesson-05-backend.html"><small>Next</small>Lesson 5: Python backend →</a></div>
+<p class="page-footer">Next: follow the API request into Python and SQLite.</p>
+</main></div></body></html>

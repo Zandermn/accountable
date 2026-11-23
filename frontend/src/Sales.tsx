@@ -8,6 +8,7 @@ import {
   ReadState,
   recordPath,
   Session,
+  ShortDate,
   stages,
   useRead,
   type Row,
@@ -22,17 +23,17 @@ export type Board = {
   columns: Record<string, { cards: Row[]; totals: Totals }>;
 };
 export const colors = ['#06D6A0', '#FFC145', '#F78C6B', '#118AB2', '#EF476F', '#CDD8DB'];
-export function Stats({ totals }: { totals: Totals }) {
+export function Stats({ totals, board = false }: { totals: Totals; board?: boolean }) {
   return (
-    <div className="stats">
+    <div className={board ? 'board-totals' : 'stats'}>
       {[
         ['Open deals', totals.count],
-        ['Open pipeline', money(totals.value)],
+        [board ? 'Open value' : 'Open pipeline value', money(totals.value)],
         ['Expected revenue', money(totals.expected)],
       ].map(([label, v]) => (
-        <div className="stat" key={label}>
+        <div className={board ? undefined : 'stat'} key={label}>
           <p>{label}</p>
-          <strong>{v}</strong>
+          <strong className="numbers">{v}</strong>
         </div>
       ))}
     </div>
@@ -72,7 +73,7 @@ function NotePanel({ row }: { row: Row }) {
       <div className="note-header">
         <h3>Notes</h3>
         <button
-          className="button subtle"
+          className="button subtle add"
           onClick={() => {
             setDraft({ text: '' });
             setError('');
@@ -81,13 +82,14 @@ function NotePanel({ row }: { row: Row }) {
           Add note
         </button>
       </div>
+      {!row.timeline.some((a) => a.type === 'Note') && !draft && <p className="muted">No notes yet</p>}
       {row.timeline
         .filter((a) => a.type === 'Note')
         .map((a) => (
           <article className="deal-note" key={a.id}>
             <p className="note-text">{a.description}</p>
             <div className="note-meta">
-              <time>{new Date(a.occurred_at).toLocaleDateString()}</time>
+              <ShortDate value={a.occurred_at} />
               <span className="note-actions">
                 <button
                   className="text-link"
@@ -145,7 +147,7 @@ function DealPanel({
     <section className="panel deal-window-content" aria-label="Deal details">
       <header className="deal-window-header">
         <div>
-          <span className="record-status">{row.stage}</span>
+          <span className="deal-window-stage"><span className="record-status">{row.stage}</span></span>
           <h2>{row.name}</h2>
         </div>
         <button className="icon-button" aria-label="Close deal details" onClick={close}>
@@ -156,13 +158,16 @@ function DealPanel({
         {[
           ['Value', money(row.value_cents)],
           ['Probability', row.probability + '%'],
-          ['Close date', row.actual_date || row.expected_date],
         ].map(([k, v]) => (
           <div key={k}>
             <dt>{k}</dt>
             <dd className="numbers">{v}</dd>
           </div>
         ))}
+        <div>
+          <dt>{row.actual_date ? 'Actual close' : 'Expected close'}</dt>
+          <dd className="numbers"><ShortDate value={row.actual_date || row.expected_date} /></dd>
+        </div>
       </dl>
       <dl className="deal-links">
         {row.related.map((r) => (
@@ -174,21 +179,16 @@ function DealPanel({
           </div>
         ))}
       </dl>
-      <div className="row-actions">
-        <button
-          className="button subtle"
-          onClick={() => open({ type: 'edit', kind: 'deals', row })}
-        >
-          Edit deal
+      {!onBoard && (
+        <button className="button pipeline-jump" onClick={jump}>
+          Show in pipeline <span aria-hidden="true">↗</span>
         </button>
-        {!onBoard && (
-          <button className="button" onClick={jump}>
-            Show in pipeline
-          </button>
-        )}
-      </div>
+      )}
       <NotePanel row={row} />
       <History kind="deals" row={row} />
+      <button className="text-link edit-deal" onClick={() => open({ type: 'edit', kind: 'deals', row })}>
+        Edit deal
+      </button>
     </section>
   );
 }
@@ -199,7 +199,7 @@ type Placement = {
   revision: number;
   expected_date?: string;
 };
-export function SalesWorkspace({ id, onBoard }: { id: string; onBoard: boolean }) {
+export function SalesWorkspace({ id, onBoard, embedded = false }: { id: string; onBoard: boolean; embedded?: boolean }) {
   const nav = useNavigate(),
     location = useLocation(),
     open = useContext(Commands),
@@ -223,10 +223,10 @@ export function SalesWorkspace({ id, onBoard }: { id: string; onBoard: boolean }
   }, [onBoard, selected, board]);
   function close() {
     returnFocus.current = selected;
-    nav(onBoard ? '/pipeline' : '/deals');
+    nav(embedded ? '/' : onBoard ? '/pipeline' : '/deals');
   }
   function jump(key: string) {
-    nav('/pipeline?' + new URLSearchParams({ deal: key }));
+    nav((embedded ? '/?' : '/pipeline?') + new URLSearchParams({ deal: key }));
   }
   async function move(target: Placement) {
     if (moving) return;
@@ -255,17 +255,17 @@ export function SalesWorkspace({ id, onBoard }: { id: string; onBoard: boolean }
     <>
       <header className={'page-head ' + (onBoard ? 'board-header' : '')}>
         <div>
-          <h1>{onBoard ? 'Pipeline' : 'Deal workspace'}</h1>
+          {embedded ? <h2 className="page-title">Pipeline</h2> : <h1>{onBoard ? 'Pipeline' : 'Deal workspace'}</h1>}
           {onBoard && <p>Move deals between stages or change their order</p>}
         </div>
         {onBoard && (
-          <button className="button" onClick={() => open({ kind: 'deals', type: 'edit' })}>
+          <button className="button add" onClick={() => open({ kind: 'deals', type: 'edit' })}>
             Add deal
           </button>
         )}
       </header>
       {error && <p role="alert">{error}</p>}
-      {onBoard && board && <Stats totals={board.totals} />}
+      {onBoard && board && <Stats totals={board.totals} board />}
       <div className={'sales-workspace ' + (onBoard && selected ? 'docked' : '')}>
         {onBoard &&
           (!board ? (
@@ -298,26 +298,13 @@ export function SalesWorkspace({ id, onBoard }: { id: string; onBoard: boolean }
                           <span className="count">{lane.cards.length}</span>
                         </div>
                         <p className="lane-stat">
-                          {i < 4 ? 'Value' : 'Closed value'}{' '}
-                          <span className="numbers">{money(lane.totals.value)}</span>
+                          {i < 4 ? <>Value <span className="numbers">{money(lane.totals.value)}</span></> : 'Closed'}
                         </p>
                         {i < 4 && (
                           <p className="lane-stat">
                             Expected <span className="numbers">{money(lane.totals.expected)}</span>
                           </p>
                         )}
-                        <button
-                          className="lane-add"
-                          onClick={() =>
-                            open({
-                              type: 'edit',
-                              kind: 'deals',
-                              initial: { stage, probability: String(probabilities[i]) },
-                            })
-                          }
-                        >
-                          + Add deal
-                        </button>
                       </div>
                       <div className="lane-cards">
                         {lane.cards.map((r, index) => (
@@ -349,6 +336,7 @@ export function SalesWorkspace({ id, onBoard }: { id: string; onBoard: boolean }
                             <button
                               id={'card-' + r.id}
                               className="text-link deal-title"
+                              aria-current={selected === r.id ? 'true' : undefined}
                               onClick={() => jump(r.id)}
                             >
                               {r.name}
@@ -359,11 +347,8 @@ export function SalesWorkspace({ id, onBoard }: { id: string; onBoard: boolean }
                               {r.probability}%
                             </div>
                             <div className="deal-meta">
-                              <time>{r.close_date}</time>
+                              <ShortDate value={r.close_date} />
                               {r.late && <span className="late">Late</span>}
-                            </div>
-                            <div className="note-count">
-                              {r.note_count} {r.note_count === 1 ? 'note' : 'notes'}{' '}
                               <button
                                 className="move"
                                 aria-label={'Move ' + r.name}
@@ -379,9 +364,16 @@ export function SalesWorkspace({ id, onBoard }: { id: string; onBoard: boolean }
                                 Move
                               </button>
                             </div>
+                            <div className="note-count">
+                              {r.note_count} {r.note_count === 1 ? 'note' : 'notes'}
+                            </div>
                           </article>
                         ))}
                       </div>
+                      <button className="lane-add" aria-label={'Add deal to ' + stage}
+                        onClick={() => open({ type: 'edit', kind: 'deals', initial: { stage, probability: String(probabilities[i]) } })}>
+                        + Add deal
+                      </button>
                     </section>
                   );
                 })}

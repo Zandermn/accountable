@@ -9,29 +9,31 @@ import {
   ReadState,
   recordPath,
   singular,
+  ShortDate,
   useRead,
   type Row,
 } from './data';
 import type { Action } from './dialogs';
 export const Commands = createContext<(action: Omit<Action, 'dataset'>) => void>(() => {});
 const columns: Record<string, string[]> = {
-  organizations: ['name', 'website', 'industry'],
+  organizations: ['name', 'industry', 'website', 'contacts_count', 'deals_count'],
   contacts: ['name', 'status', 'organization', 'email', 'phone'],
   deals: ['name', 'stage', 'value_cents', 'probability', 'close_date', 'organization', 'contact'],
 };
 export function cell(row: Row, key: string) {
   if (key === 'value_cents') return <span className="numbers">{money(row.value_cents)}</span>;
-  if (key === 'probability') return row.probability + '%';
+  if (key === 'probability') return <span className="numbers">{row.probability}%</span>;
+  if (key === 'stage' || key === 'status') return <span className="record-status">{row[key]}</span>;
   if (key === 'website' && row.website)
     return (
       <a href={row.website} target="_blank" rel="noreferrer">
-        {row.website}
+        {row.website.replace(/^https?:\/\//i, '')}
       </a>
     );
   if (key === 'close_date')
     return (
       <>
-        <time>{row.close_date}</time> {row.late && <span className="late">Late</span>}
+        <ShortDate value={row.close_date} /> {row.late && <span className="late">Late</span>}
       </>
     );
   if (key === 'organization' && row.organization)
@@ -56,7 +58,7 @@ export function Directory({ kind }: { kind: string }) {
     <>
       <header className="page-head">
         <h1>{heading(kind)}</h1>
-        <button className="button" onClick={() => open({ type: 'edit', kind })}>
+        <button className="button add" onClick={() => open({ type: 'edit', kind })}>
           Add {singular[kind]}
         </button>
       </header>
@@ -81,6 +83,9 @@ export function Directory({ kind }: { kind: string }) {
               ))}
             </select>
           )}
+          {result?.value && <span className="directory-count muted" aria-live="polite">
+            {result.value.length} {result.value.length === 1 ? 'record' : 'records'}
+          </span>}
         </div>
         {!result?.value ? (
           <ReadState error={result?.error} />
@@ -156,8 +161,12 @@ export function History({ kind, row }: { kind: string; row: Row }) {
       {!row.timeline.length && <p>No activities yet.</p>}
       {row.timeline.map((a) => (
         <article className="history" key={a.id}>
-          <strong>{a.type}</strong> · <time>{new Date(a.occurred_at).toLocaleString()}</time>
-          <p>{a.description}</p>
+          <div className="history-entry">
+            <strong>{a.type !== 'Stage' && a.type + ' · '}<span>{a.description}</span></strong>
+            <time dateTime={a.occurred_at} title={new Date(a.occurred_at).toLocaleString()}>
+              {new Date(a.occurred_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </time>
+          </div>
           {a.follow_up && (
             <p>
               Follow-up {a.follow_up} · {a.done ? 'Complete' : 'Open'}

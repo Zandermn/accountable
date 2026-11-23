@@ -12,6 +12,13 @@ def test_linked_search_status_and_typed_sort(api):
     rows = [deal(api, value_cents=v, organization_id=org["id"]) for v in (200, 30, 30)]
     result = api.get("/api/records/deals?sort=value_cents&search=Harbor").json()
     assert [r["id"] for r in result] == sorted([rows[1]["id"], rows[2]["id"]]) + [rows[0]["id"]]
+    empty = add(api, "organizations", name="No links")
+    assert remove(api, "contacts", first).is_success
+    assert remove(api, "deals", rows[0]).is_success
+    organizations = api.get("/api/records/organizations?sort=deals_count").json()
+    assert [(r["id"], r["contacts_count"], r["deals_count"]) for r in organizations] == [
+        (empty["id"], 0, 0), (org["id"], 1, 2)
+    ]
 
 
 def test_three_link_combinations_and_unavailable_links(api):

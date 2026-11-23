@@ -5,6 +5,8 @@ export const labels: Record<string, string> = {
   name: 'Name',
   website: 'Website',
   industry: 'Industry',
+  contacts_count: 'Contacts',
+  deals_count: 'Deals',
   notes: 'Notes',
   status: 'Status',
   email: 'Email',
@@ -47,6 +49,12 @@ export const singular: Record<string, string> = {
   activities: 'activity',
 };
 export const heading = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+export function ShortDate({ value }: { value: string }) {
+  if (!value) return <>—</>;
+  const date = new Date(value.length === 10 ? value + 'T12:00:00' : value);
+  return <time dateTime={value} title={date.toLocaleDateString()}>{monthDay.format(date)}</time>;
+}
 export const money = (cents: number) =>
   'US$' +
   (cents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

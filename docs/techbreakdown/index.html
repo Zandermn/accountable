@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A beginner course for the technology in the Accountable CRM project.">
+  <title>Accountable technology tutorial</title>
+  <link rel="stylesheet" href="assets/tutorial.css">
+  <script src="assets/tutorial.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Accountable technology tutorial home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Accountable<small>Technology breakdown</small></span>
+    </a>
+    <nav class="header-links" aria-label="Course links">
+      <a href="index.html" aria-current="page">Start here</a>
+      <a href="reference.html">Quick reference</a>
+      <a href="../TECH_STACK.md">Stack document</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+        <nav aria-label="Lessons">
+          <p class="nav-label">Learn in order</p>
+          <ol class="lesson-list">
+            <li><a href="lesson-01-web-foundations.html">Web foundations</a></li>
+            <li><a href="lesson-02-programming.html">Programming basics</a></li>
+            <li><a href="lesson-03-tools.html">Tools and setup</a></li>
+            <li><a href="lesson-04-frontend.html">React frontend</a></li>
+            <li><a href="lesson-05-backend.html">Python backend</a></li>
+            <li><a href="lesson-06-data.html">Data and APIs</a></li>
+            <li><a href="lesson-07-architecture.html">Project architecture</a></li>
+            <li><a href="lesson-08-testing.html">Testing and quality</a></li>
+            <li><a href="lesson-09-practice.html">Guided practice</a></li>
+          </ol>
+        </nav>
+        <p class="side-note">Open these files in a browser. The course and its fonts work offline. JavaScript is optional.</p>
+      </div>
+    </aside>
+
+    <main id="main">
+      <section class="hero">
+        <p class="eyebrow">Beginner course · No experience required</p>
+        <h1>Understand the technology behind Accountable</h1>
+        <p class="lead">Start with files, browsers, and simple programs. Build up to React, Python, databases, APIs, tests, and the design of this CRM.</p>
+        <div class="actions">
+          <a class="button" href="lesson-01-web-foundations.html">Start lesson 1 <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="#learning-path">See the learning path</a>
+        </div>
+        <ul class="meta" aria-label="Course details">
+          <li>9 lessons</li>
+          <li>About 5 hours</li>
+          <li>Examples from this repository</li>
+          <li>Exercises with answers</li>
+        </ul>
+        <div class="question-card">
+          <span class="question-label">Start with a real problem</span>
+          <p class="question-text">You click Save and a contact appears. But where did it go? Why can you refresh without losing it? And what would you check if it disappeared?</p>
+          <p class="question-answer"><strong>Why this course matters:</strong> When you understand the path from a click to a saved database row, you can use the app with confidence. You can find the cause of problems, make safer changes, and judge whether a coding agent's suggestion makes sense. You will not need to guess or memorize commands without understanding them.</p>
+        </div>
+      </section>
+
+      <section class="lesson-section" aria-labelledby="who-for">
+        <h2 id="who-for">Who this course is for</h2>
+        <p>This course is for a beginner who wants to understand the Accountable repository. You do not need to know how to code. You will learn one idea at a time and then see that idea in the project.</p>
+        <div class="callout remember">
+          <strong>Read first:</strong> This tutorial explains the current local CRM. Sign-in, Supabase, and Render are future options in <span class="path">docs/TECH_STACK.md</span>. They are not part of the current application.
+        </div>
+        <p>Use a laptop or desktop if possible. Open the tutorial and the project folders side by side. You can read every lesson without installing anything. The practical lessons use the tools listed in <span class="path">docs/STATUS.md</span>.</p>
+      </section>
+
+      <section class="lesson-section" id="learning-path" aria-labelledby="path-title">
+        <span class="section-number">YOUR ROUTE</span>
+        <h2 id="path-title">The learning path</h2>
+        <p>Follow the lessons in order. Each lesson gives you the knowledge needed for the next one. If you already know a topic, read its summary and try its questions.</p>
+        <div class="grid">
+          <article class="card lesson-card">
+            <span class="number">LESSON 01 · 25 MIN</span>
+            <h3><a href="lesson-01-web-foundations.html">Web foundations</a></h3>
+            <p>Why does opening one local page involve browsers, servers, URLs, HTTP, JSON, APIs, and a database?</p>
+            <a class="card-link" href="lesson-01-web-foundations.html">Learn how a web app works →</a>
+          </article>
+          <article class="card lesson-card">
+            <span class="number">LESSON 02 · 35 MIN</span>
+            <h3><a href="lesson-02-programming.html">Programming basics</a></h3>
+            <p>How can values, variables, decisions, functions, and errors become code that you can predict and read?</p>
+            <a class="card-link" href="lesson-02-programming.html">Read your first code →</a>
+          </article>
+          <article class="card lesson-card">
+            <span class="number">LESSON 03 · 30 MIN</span>
+            <h3><a href="lesson-03-tools.html">Tools and setup</a></h3>
+            <p>Why does the project need two package managers, and how can its setup work again on another computer?</p>
+            <a class="card-link" href="lesson-03-tools.html">Understand the toolbox →</a>
+          </article>
+          <article class="card lesson-card">
+            <span class="number">LESSON 04 · 40 MIN</span>
+            <h3><a href="lesson-04-frontend.html">React frontend</a></h3>
+            <p>What remembers your input, finds the right view, and turns React and TypeScript into the screen you see?</p>
+            <a class="card-link" href="lesson-04-frontend.html">Explore the user interface →</a>
+          </article>
+          <article class="card lesson-card">
+            <span class="number">LESSON 05 · 40 MIN</span>
+            <h3><a href="lesson-05-backend.html">Python backend</a></h3>
+            <p>What stops invalid or half-finished changes from reaching the database?</p>
+            <a class="card-link" href="lesson-05-backend.html">Explore the server →</a>
+          </article>
+          <article class="card lesson-card">
+            <span class="number">LESSON 06 · 35 MIN</span>
+            <h3><a href="lesson-06-data.html">Data and APIs</a></h3>
+            <p>How do records stay linked, recoverable, and consistent through edits, imports, deletion, and restore?</p>
+            <a class="card-link" href="lesson-06-data.html">Follow the data →</a>
+          </article>
+          <article class="card lesson-card">
+            <span class="number">LESSON 07 · 30 MIN</span>
+            <h3><a href="lesson-07-architecture.html">Project architecture</a></h3>
+            <p>When something fails, how do you find the responsible file or process instead of guessing?</p>
+            <a class="card-link" href="lesson-07-architecture.html">Connect the pieces →</a>
+          </article>
+          <article class="card lesson-card">
+            <span class="number">LESSON 08 · 30 MIN</span>
+            <h3><a href="lesson-08-testing.html">Testing and quality</a></h3>
+            <p>How can three test suites find different problems without touching your sales data?</p>
+            <a class="card-link" href="lesson-08-testing.html">Learn how checks work →</a>
+          </article>
+          <article class="card lesson-card green">
+            <span class="number">LESSON 09 · 35 MIN</span>
+            <h3><a href="lesson-09-practice.html">Guided practice</a></h3>
+            <p>Can you trace a record from your click to SQLite and back, then prove the whole app still works?</p>
+            <a class="card-link" href="lesson-09-practice.html">Use what you learned →</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="lesson-section" aria-labelledby="big-picture">
+        <span class="section-number">THE BIG PICTURE</span>
+        <h2 id="big-picture">One application, three main layers</h2>
+        <div class="question-card"><span class="question-label">The first design puzzle</span><p class="question-text">Why does Accountable need React, FastAPI, and SQLite instead of one giant program that does everything?</p><p class="question-answer"><strong>The answer:</strong> Each layer solves a different problem: presenting the interface, enforcing the rules, and preserving the data. The course reveals how they cooperate.</p></div>
+        <p>Accountable runs on your computer. Your browser shows the interface. A local Python program applies rules and manages data. SQLite stores the records in a file.</p>
+        <ol class="flow" aria-label="Application data flow">
+          <li>React in your browser</li>
+          <li>FastAPI on localhost</li>
+          <li>SQLite database file</li>
+        </ol>
+        <div class="table-wrap">
+          <table>
+            <caption>The technologies you will understand</caption>
+            <thead><tr><th>Area</th><th>Technology</th><th>Job in Accountable</th></tr></thead>
+            <tbody>
+              <tr><td>Interface</td><td>HTML, CSS, JavaScript</td><td>Page structure, visual design, and browser behavior.</td></tr>
+              <tr><td>Frontend</td><td>TypeScript, React 19, React Router</td><td>Screens, components, state, navigation, and API calls.</td></tr>
+              <tr><td>Frontend tooling</td><td>Node.js, npm, Vite</td><td>Dependencies, commands, development server, and production build.</td></tr>
+              <tr><td>Visuals</td><td>Chart.js, react-chartjs-2</td><td>Won-revenue line chart and deals-won bar chart.</td></tr>
+              <tr><td>Backend</td><td>Python 3.12, FastAPI, Uvicorn</td><td>JSON endpoints, validation, business rules, and local server.</td></tr>
+              <tr><td>Storage</td><td>SQLite, SQLAlchemy Core</td><td>Tables, relationships, queries, constraints, and transactions.</td></tr>
+              <tr><td>Data exchange</td><td>openpyxl, JSON</td><td>Excel workbooks and complete local backups.</td></tr>
+              <tr><td>Quality</td><td>Vitest, pytest, Playwright</td><td>Frontend, backend, and real-browser checks.</td></tr>
+              <tr><td>Project control</td><td>Git, GitHub</td><td>Source history, branches, review, and sharing.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <a href="reference.html">Open the full technology and command reference →</a>
+      </section>
+
+      <section class="lesson-section" aria-labelledby="how-to-learn">
+        <h2 id="how-to-learn">How to use each lesson</h2>
+        <ol class="steps">
+          <li><strong>Read the question first.</strong> Imagine what you would try. Then read the answer and compare it with your prediction.</li>
+          <li><strong>Read the goals.</strong> They tell you what you should be able to explain at the end.</li>
+          <li><strong>Run the small examples.</strong> Change one value and predict the result before you run it again.</li>
+          <li><strong>Open the named project files.</strong> You do not need to understand every line. Find the pattern shown in the lesson.</li>
+          <li><strong>Try the questions before you open the answers.</strong> A wrong prediction is useful feedback.</li>
+          <li><strong>Use the quick reference later.</strong> You do not need to memorize commands or terms.</li>
+        </ol>
+        <div class="callout warning">
+          <strong>Keep your data safe:</strong> Read-only exercises are safe. Commands such as <code>npm run seed</code> and <code>npm run load</code> replace the current dataset. The app saves a backup first, but you must still read each command before you run it.
+        </div>
+      </section>
+
+      <div class="pager">
+        <a href="reference.html"><small>Need a term?</small>Open the quick reference</a>
+        <a class="next" href="lesson-01-web-foundations.html"><small>Next</small>Lesson 1: Web foundations →</a>
+      </div>
+      <p class="page-footer">Accountable technology breakdown · Local, offline course</p>
+    </main>
+  </div>
+</body>
+</html>

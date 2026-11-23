@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Accountable technology, commands, files, API routes, and beginner glossary."><title>Quick reference | Accountable technology tutorial</title><link rel="stylesheet" href="assets/tutorial.css"><script src="assets/tutorial.js" defer></script></head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Accountable<small>Technology breakdown</small></span></a><nav class="header-links" aria-label="Course links"><a href="index.html">Start here</a><a href="reference.html" aria-current="page">Quick reference</a><a href="../TECH_STACK.md">Stack document</a></nav></header>
+<div class="layout"><aside class="sidebar"><div class="sidebar-inner"><nav aria-label="Lessons"><p class="nav-label">Learn in order</p><ol class="lesson-list"><li><a href="lesson-01-web-foundations.html">Web foundations</a></li><li><a href="lesson-02-programming.html">Programming basics</a></li><li><a href="lesson-03-tools.html">Tools and setup</a></li><li><a href="lesson-04-frontend.html">React frontend</a></li><li><a href="lesson-05-backend.html">Python backend</a></li><li><a href="lesson-06-data.html">Data and APIs</a></li><li><a href="lesson-07-architecture.html">Project architecture</a></li><li><a href="lesson-08-testing.html">Testing and quality</a></li><li><a href="lesson-09-practice.html">Guided practice</a></li></ol></nav><p class="side-note">Use this page after the course. You do not need to memorize it.</p></div></aside>
+<main id="main">
+<section class="hero compact"><p class="eyebrow">Quick reference</p><h1>Technology, commands, files, and terms</h1><p class="lead">A compact guide to the current Accountable implementation. Use your browser's Find command to search this page.</p><ul class="meta"><li>Current local MVP</li><li>Offline-readable</li><li>Source-linked</li></ul></section>
+<nav class="toc lesson-section" aria-labelledby="contents"><h2 id="contents">On this page</h2><ol><li><a href="#stack">Technology matrix</a></li><li><a href="#commands">Commands</a></li><li><a href="#paths">File lookup</a></li><li><a href="#api">API summary</a></li><li><a href="#glossary">Glossary</a></li></ol></nav>
+
+<section class="lesson-section" id="stack"><span class="section-number">01</span><h2>Technology matrix</h2>
+<div class="table-wrap"><table><thead><tr><th>Tool</th><th>Project version or range</th><th>Role</th><th>Learn</th></tr></thead><tbody>
+<tr><td>Node.js</td><td>Target 26; 24 or later</td><td>Runs scripts, Vite, TypeScript, Vitest, and Playwright.</td><td><a href="lesson-03-tools.html#node">Lesson 3</a></td></tr>
+<tr><td>npm</td><td>Supplied with Node.js</td><td>JavaScript dependencies, workspace, and root commands.</td><td><a href="lesson-03-tools.html#node">Lesson 3</a></td></tr>
+<tr><td>Python</td><td>3.12 only (<code>&gt;=3.12,&lt;3.13</code>)</td><td>Backend language.</td><td><a href="lesson-02-programming.html">Lesson 2</a></td></tr>
+<tr><td>uv</td><td>Installed setup tool</td><td>Python installation, environment, and locked packages.</td><td><a href="lesson-03-tools.html#python">Lesson 3</a></td></tr>
+<tr><td>React / React DOM</td><td><code>^19.1.0</code></td><td>Browser components and rendering.</td><td><a href="lesson-04-frontend.html#react">Lesson 4</a></td></tr>
+<tr><td>React Router DOM</td><td><code>^7.8.0</code></td><td>Frontend URLs, links, and navigation.</td><td><a href="lesson-04-frontend.html#routing">Lesson 4</a></td></tr>
+<tr><td>TypeScript</td><td><code>^5.9.0</code></td><td>Static checks for frontend and configuration code.</td><td><a href="lesson-04-frontend.html#typescript">Lesson 4</a></td></tr>
+<tr><td>Vite</td><td><code>^7.1.0</code></td><td>Frontend development server, proxy, and production bundler.</td><td><a href="lesson-04-frontend.html#vite">Lesson 4</a></td></tr>
+<tr><td>Chart.js</td><td><code>^4.5.0</code></td><td>Canvas line and bar charts.</td><td><a href="lesson-04-frontend.html#features">Lesson 4</a></td></tr>
+<tr><td>react-chartjs-2</td><td><code>^5.3.0</code></td><td>React components for Chart.js.</td><td><a href="lesson-04-frontend.html#features">Lesson 4</a></td></tr>
+<tr><td>FastAPI</td><td><code>&gt;=0.115,&lt;1</code></td><td>Python HTTP routes and JSON responses.</td><td><a href="lesson-05-backend.html#fastapi">Lesson 5</a></td></tr>
+<tr><td>Uvicorn</td><td><code>&gt;=0.34,&lt;1</code></td><td>Runs the FastAPI server.</td><td><a href="lesson-05-backend.html#fastapi">Lesson 5</a></td></tr>
+<tr><td>SQLAlchemy Core</td><td><code>&gt;=2.0,&lt;2.1</code></td><td>Table schema, query expressions, connections, and transactions.</td><td><a href="lesson-05-backend.html#sqlalchemy">Lesson 5</a></td></tr>
+<tr><td>SQLite</td><td>Through Python and SQLAlchemy</td><td>Local file-based relational storage.</td><td><a href="lesson-05-backend.html#sqlalchemy">Lesson 5</a></td></tr>
+<tr><td>openpyxl</td><td><code>&gt;=3.1,&lt;4</code></td><td>Read and write <code>.xlsx</code> workbooks.</td><td><a href="lesson-05-backend.html#workbooks">Lesson 5</a></td></tr>
+<tr><td>python-multipart</td><td><code>&gt;=0.0.20</code></td><td>Multipart workbook upload handling.</td><td><a href="lesson-05-backend.html#workbooks">Lesson 5</a></td></tr>
+<tr><td>defusedxml</td><td><code>&gt;=0.7.1</code></td><td>Safer XML parsing support for workbook processing.</td><td><a href="lesson-05-backend.html#workbooks">Lesson 5</a></td></tr>
+<tr><td>Vitest</td><td><code>^4.1.12</code></td><td>Frontend unit test runner.</td><td><a href="lesson-08-testing.html#vitest">Lesson 8</a></td></tr>
+<tr><td>Testing Library / jest-dom</td><td>React <code>^16.3.0</code>; jest-dom <code>^6.6.0</code></td><td>Accessible component queries and DOM assertions.</td><td><a href="lesson-08-testing.html#vitest">Lesson 8</a></td></tr>
+<tr><td>jsdom</td><td><code>^26.1.0</code></td><td>DOM implementation for frontend tests in Node.js.</td><td><a href="lesson-08-testing.html#vitest">Lesson 8</a></td></tr>
+<tr><td>pytest</td><td><code>&gt;=8,&lt;10</code></td><td>Backend test discovery, fixtures, and assertions.</td><td><a href="lesson-08-testing.html#pytest">Lesson 8</a></td></tr>
+<tr><td>HTTPX / TestClient</td><td>HTTPX <code>&gt;=0.28,&lt;1</code></td><td>Calls FastAPI in backend tests.</td><td><a href="lesson-08-testing.html#pytest">Lesson 8</a></td></tr>
+<tr><td>Playwright Test</td><td><code>^1.55.0</code></td><td>End-to-end tests in installed Google Chrome.</td><td><a href="lesson-08-testing.html#playwright">Lesson 8</a></td></tr>
+<tr><td>Git / GitHub</td><td>Version-control tools</td><td>Local source history and optional online collaboration.</td><td><a href="lesson-03-tools.html#git">Lesson 3</a></td></tr>
+</tbody></table></div>
+<p class="small muted">Ranges come from the manifests. Lockfiles select the exact installed transitive dependency tree. Check <span class="path">package-lock.json</span> and <span class="path">uv.lock</span> for resolved versions.</p></section>
+
+<section class="lesson-section" id="commands"><span class="section-number">02</span><h2>Command reference</h2>
+<p>Run these from the repository root unless stated otherwise.</p>
+<div class="table-wrap"><table><thead><tr><th>Command</th><th>Result</th><th>Caution</th></tr></thead><tbody>
+<tr><td><code>uv python install 3.12</code></td><td>Install the required Python runtime.</td><td>One-time setup; internet.</td></tr>
+<tr><td><code>uv sync --locked</code></td><td>Install Python dependencies into <span class="path">.venv/</span>.</td><td>Uses <span class="path">uv.lock</span>.</td></tr>
+<tr><td><code>npm ci</code></td><td>Install JavaScript dependencies.</td><td>Uses <span class="path">package-lock.json</span>; internet for first setup.</td></tr>
+<tr><td><code>npm run dev</code></td><td>Start Uvicorn and Vite.</td><td>Keep terminal open; <kbd>Ctrl</kbd>+<kbd>C</kbd> stops.</td></tr>
+<tr><td><code>npm test</code></td><td>Run Vitest, pytest, and Playwright.</td><td>Any failure or startup error gives nonzero exit.</td></tr>
+<tr><td><code>npm run test:ui</code></td><td>Run frontend unit tests.</td><td>Uses jsdom, not full Chrome.</td></tr>
+<tr><td><code>npm run test:api</code></td><td>Run backend tests.</td><td>Uses temporary databases.</td></tr>
+<tr><td><code>npm run test:e2e</code></td><td>Run browser tests.</td><td>Starts isolated app itself; needs Chrome.</td></tr>
+<tr><td><code>npm run build</code></td><td>Type-check and build into <span class="path">frontend/dist/</span>.</td><td>Does not replace behavior tests.</td></tr>
+<tr><td><code>npm run save</code></td><td>Write a full JSON backup and print its ID.</td><td>Safe normal backup operation.</td></tr>
+<tr><td><code>npm run load -- &lt;backup-id&gt;</code></td><td>Back up current state, then replace it with the selected backup.</td><td><strong>Replaces active records and Trash.</strong></td></tr>
+<tr><td><code>npm run seed</code></td><td>After <code>yes</code> and a backup, replace current data with samples.</td><td><strong>Replaces active records and Trash.</strong> Enter cancels.</td></tr>
+<tr><td><code>git status</code></td><td>Show working tree state.</td><td>Read-only.</td></tr>
+<tr><td><code>git diff</code></td><td>Show unstaged source changes.</td><td>Read-only.</td></tr>
+</tbody></table></div>
+<h3>Environment variables</h3><div class="table-wrap"><table><thead><tr><th>Name</th><th>Default</th></tr></thead><tbody><tr><td><code>ACCOUNTABLE_DB</code></td><td><span class="path">data/accountable.db</span></td></tr><tr><td><code>ACCOUNTABLE_BACKUPS</code></td><td><span class="path">data/backups/</span> beside the database</td></tr><tr><td><code>ACCOUNTABLE_PORT</code></td><td><code>5173</code></td></tr><tr><td><code>ACCOUNTABLE_API_PORT</code></td><td><code>8000</code></td></tr></tbody></table></div></section>
+
+<section class="lesson-section" id="paths"><span class="section-number">03</span><h2>File lookup</h2>
+<div class="table-wrap"><table><thead><tr><th>I want to inspect…</th><th>Open</th></tr></thead><tbody>
+<tr><td>Product goals</td><td><a href="../intent.md"><span class="path">docs/intent.md</span></a></td></tr>
+<tr><td>Detailed behavior</td><td><a href="../spec.md"><span class="path">docs/spec.md</span></a></td></tr>
+<tr><td>Setup and current status</td><td><a href="../STATUS.md"><span class="path">docs/STATUS.md</span></a></td></tr>
+<tr><td>Technology decision</td><td><a href="../TECH_STACK.md"><span class="path">docs/TECH_STACK.md</span></a></td></tr>
+<tr><td>Business terms</td><td><a href="../../GLOSSARY.md"><span class="path">GLOSSARY.md</span></a></td></tr>
+<tr><td>Frontend mount and navigation</td><td><span class="path">frontend/src/main.tsx</span>, <span class="path">App.tsx</span></td></tr>
+<tr><td>View selection and version polling</td><td><span class="path">frontend/src/Workspace.tsx</span></td></tr>
+<tr><td>Shared API client and types</td><td><span class="path">frontend/src/data.tsx</span></td></tr>
+<tr><td>Tables, details, timelines, Trash</td><td><span class="path">frontend/src/Records.tsx</span></td></tr>
+<tr><td>Forms and modal dialogs</td><td><span class="path">frontend/src/dialogs.tsx</span></td></tr>
+<tr><td>Pipeline and deal notes</td><td><span class="path">frontend/src/Sales.tsx</span></td></tr>
+<tr><td>Dashboard and charts</td><td><span class="path">frontend/src/Dashboard.tsx</span></td></tr>
+<tr><td>Workbook and backup UI</td><td><span class="path">frontend/src/DataView.tsx</span></td></tr>
+<tr><td>FastAPI construction</td><td><span class="path">backend/main.py</span></td></tr>
+<tr><td>HTTP routes</td><td><span class="path">backend/api/</span></td></tr>
+<tr><td>Schema and transactions</td><td><span class="path">backend/db/__init__.py</span></td></tr>
+<tr><td>Record rules</td><td><span class="path">backend/services/records.py</span></td></tr>
+<tr><td>Pipeline and dashboard rules</td><td><span class="path">backend/services/sales.py</span></td></tr>
+<tr><td>Trash and recovery</td><td><span class="path">backend/services/trash.py</span></td></tr>
+<tr><td>Workbook logic</td><td><span class="path">backend/services/workbooks.py</span></td></tr>
+<tr><td>Backup logic</td><td><span class="path">backend/services/backups.py</span></td></tr>
+<tr><td>Development process coordination</td><td><span class="path">scripts/dev.mjs</span></td></tr>
+<tr><td>All-suite test coordination</td><td><span class="path">scripts/test.mjs</span></td></tr>
+<tr><td>Frontend, backend, browser tests</td><td><span class="path">frontend/src/*.test.tsx</span>, <span class="path">backend/tests/</span>, <span class="path">e2e/</span></td></tr>
+</tbody></table></div></section>
+
+<section class="lesson-section" id="api"><span class="section-number">04</span><h2>JSON API summary</h2>
+<p>All paths have the <code>/api</code> prefix. Record kinds are <code>organizations</code>, <code>contacts</code>, <code>deals</code>, and where accepted <code>activities</code>. Write routes expect <code>X-Dataset</code>. Operations with a preview also check a revision or token.</p>
+<div class="table-wrap"><table><thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead><tbody>
+<tr><td>GET</td><td><code>/version</code></td><td>Schema state, dataset ID, and revision.</td></tr>
+<tr><td>GET</td><td><code>/records/{kind}</code></td><td>List with search, sort, direction, and optional status.</td></tr>
+<tr><td>POST</td><td><code>/records/{kind}</code></td><td>Create.</td></tr>
+<tr><td>GET</td><td><code>/records/{kind}/{id}</code></td><td>Detail, links, and applicable timeline.</td></tr>
+<tr><td>PATCH</td><td><code>/records/{kind}/{id}</code></td><td>Edit supplied fields.</td></tr>
+<tr><td>GET</td><td><code>/records/{kind}/{id}/delete-preview</code></td><td>Read blockers and deletion impact.</td></tr>
+<tr><td>DELETE</td><td><code>/records/{kind}/{id}</code></td><td>Soft-delete with preview revision.</td></tr>
+<tr><td>GET</td><td><code>/trash</code></td><td>List deleted records with kind and direction options.</td></tr>
+<tr><td>POST</td><td><code>/trash/{kind}/{id}</code></td><td>Restore with recovery choices when required.</td></tr>
+<tr><td>GET</td><td><code>/pipeline</code></td><td>Ordered columns, cards, revision, and totals.</td></tr>
+<tr><td>POST</td><td><code>/pipeline/move</code></td><td>Change stage or position with a board revision.</td></tr>
+<tr><td>GET</td><td><code>/dashboard</code></td><td>Monthly results, totals, funnel, activity, and follow-ups.</td></tr>
+<tr><td>GET</td><td><code>/workbook/template</code></td><td>Download blank <code>.xlsx</code> template.</td></tr>
+<tr><td>GET</td><td><code>/workbook/export</code></td><td>Download active main records.</td></tr>
+<tr><td>POST</td><td><code>/workbook/preview</code></td><td>Validate and preview an uploaded workbook.</td></tr>
+<tr><td>POST</td><td><code>/workbook/apply</code></td><td>Apply with file and matching preview token.</td></tr>
+<tr><td>GET</td><td><code>/backups</code></td><td>List valid app-managed backups.</td></tr>
+<tr><td>POST</td><td><code>/backups/{id}/confirm</code></td><td>Start deletion and issue a backup-bound token.</td></tr>
+<tr><td>POST</td><td><code>/backups/{id}/cancel</code></td><td>Cancel that confirmation.</td></tr>
+<tr><td>DELETE</td><td><code>/backups/{id}</code></td><td>Permanently delete after valid confirmation.</td></tr>
+</tbody></table></div>
+<p>Common errors: <code>404</code> unavailable resource, <code>409</code> current-state conflict, and <code>422</code> invalid input. FastAPI's generated <code>/docs</code> and <code>/redoc</code> pages are disabled.</p></section>
+
+<section class="lesson-section" id="glossary"><span class="section-number">05</span><h2>Beginner glossary</h2>
+<div class="table-wrap"><table><thead><tr><th>Term</th><th>Plain meaning</th></tr></thead><tbody>
+<tr><td>API</td><td>A defined way for programs to communicate.</td></tr>
+<tr><td>Argument</td><td>A value supplied in a function call.</td></tr>
+<tr><td>Assertion</td><td>A test statement that must be true.</td></tr>
+<tr><td>Atomic operation</td><td>Work that completes as one unit or has no effect.</td></tr>
+<tr><td>Backend</td><td>Server-side code that handles rules and saved data.</td></tr>
+<tr><td>Branch</td><td>A movable Git name for a line of commits.</td></tr>
+<tr><td>Browser</td><td>A program that displays web content and runs frontend code.</td></tr>
+<tr><td>Build</td><td>Transform source into runnable or distributable output.</td></tr>
+<tr><td>Bundle</td><td>Combine and optimize frontend modules and assets.</td></tr>
+<tr><td>Client</td><td>The party making a request to a service.</td></tr>
+<tr><td>Commit (Git)</td><td>A saved source-history snapshot.</td></tr>
+<tr><td>Commit (database)</td><td>Make a transaction's changes persistent.</td></tr>
+<tr><td>Component</td><td>A reusable React function that describes UI.</td></tr>
+<tr><td>Constraint</td><td>A database-enforced rule for valid rows and links.</td></tr>
+<tr><td>CRUD</td><td>Create, Read, Update, and Delete.</td></tr>
+<tr><td>CSS</td><td>The language for visual presentation.</td></tr>
+<tr><td>Dependency</td><td>External code required by the project.</td></tr>
+<tr><td>DOM</td><td>The browser's live object representation of a document.</td></tr>
+<tr><td>Endpoint</td><td>A specific API method and path.</td></tr>
+<tr><td>Environment variable</td><td>A named value supplied to a running process.</td></tr>
+<tr><td>Fixture</td><td>Reusable test setup and cleanup.</td></tr>
+<tr><td>Foreign key</td><td>A column that references another table's row.</td></tr>
+<tr><td>Frontend</td><td>The browser-facing part of an application.</td></tr>
+<tr><td>Full stack</td><td>Work across frontend, backend, and storage.</td></tr>
+<tr><td>Hash / checksum</td><td>A fixed-length fingerprint used to detect changed content.</td></tr>
+<tr><td>Hook</td><td>A React function that adds stateful behavior to a component.</td></tr>
+<tr><td>HTML</td><td>The language for page structure and meaning.</td></tr>
+<tr><td>HTTP</td><td>The web's request-and-response protocol.</td></tr>
+<tr><td>IDE</td><td>An editor with development tools, such as VS Code.</td></tr>
+<tr><td>JSON</td><td>A text format for objects, arrays, and simple values.</td></tr>
+<tr><td>Library</td><td>Reusable code called by an application.</td></tr>
+<tr><td>Lockfile</td><td>A record of resolved dependency versions.</td></tr>
+<tr><td>Loopback</td><td>Network traffic that stays on the same computer.</td></tr>
+<tr><td>MCP</td><td>A protocol that lets coding agents call external tools.</td></tr>
+<tr><td>Mock / stub</td><td>A controlled test replacement for a dependency.</td></tr>
+<tr><td>Module</td><td>A source file whose definitions can be imported.</td></tr>
+<tr><td>MVP</td><td>Minimum Viable Product: the smallest useful agreed product scope.</td></tr>
+<tr><td>ORM</td><td>A tool that maps objects to relational rows. This project uses SQLAlchemy Core, not its ORM.</td></tr>
+<tr><td>Package manager</td><td>A tool that installs and records dependencies.</td></tr>
+<tr><td>Persistence</td><td>Data remaining after a refresh or restart.</td></tr>
+<tr><td>Port</td><td>A numbered endpoint for a network service.</td></tr>
+<tr><td>Primary key</td><td>A column or columns that uniquely identify a row.</td></tr>
+<tr><td>Process</td><td>A running program.</td></tr>
+<tr><td>Promise</td><td>A JavaScript value representing a future async result or failure.</td></tr>
+<tr><td>Props</td><td>Inputs passed to a React component.</td></tr>
+<tr><td>Proxy</td><td>A server that forwards a request to another server.</td></tr>
+<tr><td>Query</td><td>A request for database rows, or parameters in a URL.</td></tr>
+<tr><td>Regression</td><td>A change that breaks behavior that worked before.</td></tr>
+<tr><td>Repository</td><td>A project and its Git history.</td></tr>
+<tr><td>Rollback</td><td>Undo uncommitted transaction changes.</td></tr>
+<tr><td>Route</td><td>A URL pattern connected to application behavior.</td></tr>
+<tr><td>Runtime</td><td>A program that executes code, or the execution environment.</td></tr>
+<tr><td>Schema</td><td>The database's table, column, key, and constraint definitions.</td></tr>
+<tr><td>Server</td><td>A program that provides responses or services.</td></tr>
+<tr><td>Soft deletion</td><td>Marking a record deleted while keeping it recoverable.</td></tr>
+<tr><td>State</td><td>Data remembered by an application or component.</td></tr>
+<tr><td>Static types</td><td>Value-shape checks performed before execution.</td></tr>
+<tr><td>Transaction</td><td>A group of database operations treated as one unit.</td></tr>
+<tr><td>TSX</td><td>TypeScript syntax that can contain React UI expressions.</td></tr>
+<tr><td>UTC</td><td>A standard time reference used for saved timestamps.</td></tr>
+<tr><td>UUID</td><td>A practically unique generated identifier.</td></tr>
+<tr><td>Virtual environment</td><td>An isolated Python package environment for a project.</td></tr>
+</tbody></table></div></section>
+<div class="pager"><a href="index.html"><small>Course</small>Return to the learning path</a><a class="next" href="lesson-01-web-foundations.html"><small>Start learning</small>Lesson 1: Web foundations →</a></div>
+<p class="page-footer">Quick reference · Based on the current repository source and manifests.</p>
+</main></div></body></html>

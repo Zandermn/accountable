@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Tour the Accountable repository, startup flow, configuration, offline design, and local security."><title>Lesson 7: Project architecture | Accountable</title><link rel="stylesheet" href="assets/tutorial.css"><script src="assets/tutorial.js" defer></script></head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Accountable<small>Technology breakdown</small></span></a><nav class="header-links" aria-label="Course links"><a href="index.html">Start here</a><a href="reference.html">Quick reference</a><a href="../TECH_STACK.md">Stack document</a></nav></header>
+<div class="layout"><aside class="sidebar"><div class="sidebar-inner"><nav aria-label="Lessons"><p class="nav-label">Learn in order</p><ol class="lesson-list"><li><a href="lesson-01-web-foundations.html">Web foundations</a></li><li><a href="lesson-02-programming.html">Programming basics</a></li><li><a href="lesson-03-tools.html">Tools and setup</a></li><li><a href="lesson-04-frontend.html">React frontend</a></li><li><a href="lesson-05-backend.html">Python backend</a></li><li><a href="lesson-06-data.html">Data and APIs</a></li><li><a href="lesson-07-architecture.html" aria-current="page">Project architecture</a></li><li><a href="lesson-08-testing.html">Testing and quality</a></li><li><a href="lesson-09-practice.html">Guided practice</a></li></ol></nav><p class="side-note">Course 07 of 09 · About 30 minutes</p></div></aside>
+<main id="main">
+<section class="hero compact"><p class="eyebrow">Lesson 07 · Architecture</p><h1>Connect the whole repository</h1><p class="lead">Learn where every kind of file belongs, how the two servers start, and why the local design works offline.</p><ul class="meta"><li>About 30 minutes</li><li>Prerequisite: Lessons 1–6</li><li>Viewpoint: the whole system</li></ul><div class="question-card"><span class="question-label">The problem</span><p class="question-text">The repository has application code, tests, documents, generated files, and agent settings. When something fails, which folder should you open first?</p><p class="question-answer"><strong>Why it matters:</strong> Architecture gives you a reliable search strategy. It helps you find the responsible layer and avoid editing generated output or runtime data by mistake.</p></div></section>
+<nav class="toc lesson-section" aria-labelledby="contents"><h2 id="contents">In this lesson</h2><ol><li><a href="#architecture">Architecture and responsibilities</a></li><li><a href="#repository">Repository map</a></li><li><a href="#startup">Startup and shutdown</a></li><li><a href="#configuration">Configuration files</a></li><li><a href="#offline">Offline and local security</a></li><li><a href="#agent">Coding-agent support files</a></li><li><a href="#future">Current versus future technology</a></li><li><a href="#review">Review</a></li></ol></nav>
+
+<section class="lesson-section" id="architecture"><span class="section-number">01</span><h2>Architecture: the system's main parts</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">A deal shows the wrong probability. Should you change the card, the API route, the service, or the database? Without a map, every file looks possible.</p><p class="question-answer"><strong>The answer:</strong> Architecture assigns responsibility to each layer. Stage rules belong in shared backend services; the card presents their result.</p></div>
+<p><span class="term">Architecture</span> describes the main parts of a system and their responsibilities. Accountable is a local full-stack web application with a layered backend.</p>
+<div class="file-tree">Chrome
+└── React + TypeScript + CSS       frontend/src/
+    ├── Views and components
+    ├── Browser state and forms
+    └── fetch('/api/...')
+              │
+              ▼ same-origin Vite proxy
+        FastAPI + Uvicorn           backend/main.py, backend/api/
+              │
+              ▼ shared operations
+        Python services             backend/services/
+              │
+              ▼ table expressions and transactions
+        SQLAlchemy Core + Store     backend/db/
+              │
+              ▼
+        SQLite file                 data/accountable.db</div>
+<p>This is a <span class="term">client-server</span> design on one machine. It is also a <span class="term">layered</span> design. Each layer has a clear job:</p><ul><li>The view collects input and presents results.</li><li>The API translates HTTP into service calls.</li><li>Services validate and coordinate business operations.</li><li>The store controls persistence and transactions.</li><li>SQLite enforces low-level relational constraints.</li></ul>
+<p>The backend is the authority for saved state. React state is not authoritative. A pipeline card is not truly moved until the server commits and returns success.</p>
+<div class="callout"><strong>One shared write path:</strong> Forms, board moves, workbook imports, and data commands reuse backend services. This avoids different implementations of stage probability, active links, and recovery rules.</div></section>
+
+<section class="lesson-section" id="repository"><span class="section-number">02</span><h2>Repository map</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">You want to change a table. Should you edit a React component, a generated file in <code>dist/</code>, a mockup, or a browser screenshot?</p><p class="question-answer"><strong>The answer:</strong> The repository map separates source from generated output, design references, runtime data, and course tooling. Edit the source that owns the behavior.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Path</th><th>Source or generated?</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><span class="path">frontend/src/</span></td><td>Source</td><td>React components, shared API code, styles, and unit tests.</td></tr>
+<tr><td><span class="path">frontend/public/</span></td><td>Source assets</td><td>Local font files and licenses.</td></tr>
+<tr><td><span class="path">frontend/dist/</span></td><td>Generated</td><td>Production frontend output from Vite.</td></tr>
+<tr><td><span class="path">backend/api/</span></td><td>Source</td><td>HTTP route definitions.</td></tr>
+<tr><td><span class="path">backend/services/</span></td><td>Source</td><td>Business operations, calculations, exchange, and recovery.</td></tr>
+<tr><td><span class="path">backend/db/</span></td><td>Source</td><td>Database schema and transaction store.</td></tr>
+<tr><td><span class="path">backend/tests/</span></td><td>Source</td><td>pytest tests and fixtures.</td></tr>
+<tr><td><span class="path">e2e/</span></td><td>Source</td><td>Playwright browser tests and their app fixture.</td></tr>
+<tr><td><span class="path">scripts/</span></td><td>Source</td><td>Cross-platform Node.js startup, Python selection, and test coordination.</td></tr>
+<tr><td><span class="path">docs/</span></td><td>Source documents</td><td>Intent, specification, plan, stack, status, mockups, and this tutorial.</td></tr>
+<tr><td><span class="path">data/</span></td><td>Runtime data</td><td>SQLite database and full JSON backups. Not version-controlled.</td></tr>
+<tr><td><span class="path">course/</span></td><td>Course documents</td><td>Setup and instructions for Ed Donner's AI SDLC course.</td></tr>
+<tr><td><span class="path">community_contributions/</span></td><td>Contributed documents</td><td>Work shared by course students.</td></tr>
+<tr><td><span class="path">assets/</span></td><td>Source asset</td><td>The course project's main image.</td></tr>
+<tr><td><span class="path">node_modules/</span>, <span class="path">.venv/</span></td><td>Generated dependencies</td><td>Installed JavaScript and Python packages.</td></tr>
+<tr><td><span class="path">test-results/</span>, cache folders</td><td>Generated output</td><td>Test reports, screenshots, and tool caches.</td></tr>
+</tbody></table></div>
+<p>The mockups in <span class="path">docs/mockups/</span> are standalone design explorations. They use sample data and browser storage. They are not the production React app. The approved visual reference is <span class="path">06-deal-workspace.html</span>.</p>
+<p>The documents have different jobs:</p><ul><li><span class="path">docs/intent.md</span> says what users need.</li><li><span class="path">docs/spec.md</span> turns that intent into detailed behavior.</li><li><span class="path">docs/plan.md</span> organizes implementation and proof.</li><li><span class="path">docs/TECH_STACK.md</span> defines technology choices.</li><li><span class="path">docs/STATUS.md</span> records current setup, commands, and verification.</li><li><span class="path">GLOSSARY.md</span> defines business terms.</li></ul></section>
+
+<section class="lesson-section" id="startup"><span class="section-number">03</span><h2>Startup, requests, and shutdown</h2><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">Why does one command create two running processes, and why does closing the wrong terminal make the app stop?</p><p class="question-answer"><strong>The answer:</strong> The dev script coordinates Uvicorn and Vite. It starts them in order, waits for readiness, and shuts both down together.</p></div>
+<p><code>npm run dev</code> executes <span class="path">scripts/dev.mjs</span>. This is a Node.js ES module; <code>.mjs</code> makes that module format explicit.</p>
+<ol class="steps"><li>Read <code>ACCOUNTABLE_PORT</code> and <code>ACCOUNTABLE_API_PORT</code>, or use 5173 and 8000.</li><li>Start Uvicorn with <code>backend.main:app</code> on loopback.</li><li>Poll <code>GET /api/version</code> every 100 ms until the backend responds successfully.</li><li>Start Vite from the installed local package, with the frontend config and a strict frontend port.</li><li>Keep both child processes alive. If one exits, stop the other.</li></ol>
+<p><span class="term">Polling</span> means checking repeatedly. Startup polling prevents Vite from appearing ready before the API can respond. A strict port fails instead of silently selecting a different frontend port.</p>
+<p>Press <kbd>Ctrl</kbd> + <kbd>C</kbd>. The script handles the interrupt and stops both child processes. Closing stdin also stops them when the app runs under the browser test fixture.</p>
+<h3>A normal page load</h3><ol class="flow"><li>GET / returns index.html</li><li>Vite serves TSX and CSS</li><li>React requests /api/version</li><li>Views request their data</li></ol>
+<p>The browser receives JavaScript modules transformed by Vite, not raw Python. FastAPI receives API requests, not requests for React component source.</p></section>
+
+<section class="lesson-section" id="configuration"><span class="section-number">04</span><h2>Configuration files and formats</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How do npm, uv, TypeScript, Vite, pytest, and Playwright all know which commands, packages, paths, and ports this project uses?</p><p class="question-answer"><strong>The answer:</strong> Each tool has a focused configuration file. Environment variables supply machine-specific values without rewriting source.</p></div>
+<div class="table-wrap"><table><thead><tr><th>File</th><th>Tool that reads it</th><th>What it controls</th></tr></thead><tbody>
+<tr><td><span class="path">package.json</span></td><td>npm and Node.js</td><td>Root scripts, workspace, Node engine, Playwright dependency.</td></tr>
+<tr><td><span class="path">frontend/package.json</span></td><td>npm</td><td>Frontend dependencies, build, and Vitest command.</td></tr>
+<tr><td><span class="path">package-lock.json</span></td><td>npm</td><td>Resolved JavaScript dependency versions.</td></tr>
+<tr><td><span class="path">pyproject.toml</span></td><td>uv and pytest</td><td>Python version, packages, pytest paths and import root.</td></tr>
+<tr><td><span class="path">uv.lock</span></td><td>uv</td><td>Resolved Python dependency versions.</td></tr>
+<tr><td><span class="path">frontend/tsconfig.json</span></td><td>TypeScript</td><td>Strict checks, ES2022 target, TSX handling, included files.</td></tr>
+<tr><td><span class="path">frontend/vite.config.ts</span></td><td>Vite and Vitest</td><td>TSX transform, API proxy, jsdom tests, setup file.</td></tr>
+<tr><td><span class="path">playwright.config.ts</span></td><td>Playwright</td><td>Test directory, one worker, timeout, installed Chrome, viewport.</td></tr>
+<tr><td><span class="path">.gitignore</span></td><td>Git</td><td>Generated and local paths excluded from source control.</td></tr>
+<tr><td><span class="path">.mcp.json</span></td><td>Compatible coding agents</td><td>Playwright MCP server configuration, not app runtime.</td></tr>
+</tbody></table></div>
+<p>JSON and TOML are text configuration formats. TypeScript config files can contain logic, such as joining the API port into the proxy URL. Environment variables supply machine-specific paths and ports without changing source.</p></section>
+
+<section class="lesson-section" id="offline"><span class="section-number">05</span><h2>Offline operation and local security</h2><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">The app uses HTTP but needs no internet. How can that be true—and does running locally automatically make customer data secure?</p><p class="question-answer"><strong>The answer:</strong> Loopback HTTP stays on your computer, and local packages and fonts remove external requests. Loopback is not authentication or encryption, so device access still matters.</p></div>
+<p>After one-time setup, the app does not need internet access:</p><ul><li>npm scripts start installed local tools instead of resolving packages.</li><li>Fonts ship in <span class="path">frontend/public/fonts/</span>.</li><li>Chart.js and all frontend packages are bundled from local dependencies.</li><li>Both servers bind to loopback.</li><li>SQLite reads and writes a local file.</li></ul>
+<p>“Offline” does not mean “no network stack.” The browser still uses HTTP over the computer's loopback interface. It means no external internet service is required.</p>
+<h3>Security boundary</h3><p>The current MVP has no sign-in or user accounts. Loopback binding reduces network exposure, but it is not authentication. Another process on the same computer could call the local API. Do not expose these ports to a public or shared network without a proper security design.</p>
+<div class="callout warning"><strong>Local does not mean secret:</strong> SQLite and JSON backups are not encrypted by this app. Protect your Windows account, device storage, and backup copies. The app needs no <span class="path">.env</span> file for its current local workflow.</div>
+<p>Server validation protects data integrity. Database constraints add another layer. These checks are not a replacement for authentication if the app later becomes multi-user.</p></section>
+
+<section class="lesson-section" id="agent"><span class="section-number">06</span><h2>Coding-agent support files</h2><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">The MVP excludes AI features, so why does the repository contain skills, agent instructions, and an MCP configuration?</p><p class="question-answer"><strong>The answer:</strong> Those files support the tools used to develop the app. They do not run inside the CRM or add AI behavior for its users.</p></div>
+<p>This repository belongs to an AI software-development course. Some files help coding agents; they are not application dependencies.</p>
+<div class="table-wrap"><table><thead><tr><th>Path or concept</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><span class="path">AGENTS.md</span></td><td>Project guidance for coding agents: important documents, tests, and status updates.</td></tr>
+<tr><td><span class="path">.agents/skills/brand/</span></td><td>Reusable brand guidance for UI work.</td></tr>
+<tr><td><span class="path">course/for_agents/</span></td><td>Course-specific guidance for agents helping a student.</td></tr>
+<tr><td><span class="path">.mcp.json</span></td><td>Configures a Playwright Model Context Protocol server for compatible agents.</td></tr>
+<tr><td><span class="path">.claude/</span>, <span class="path">.kimi-code/</span>, <span class="path">.pi/</span></td><td>Tool-specific or local agent settings. Some are private and ignored.</td></tr>
+</tbody></table></div>
+<p><span class="term">MCP</span> (Model Context Protocol) gives a coding agent a standard way to call external tools. Here, it can expose browser automation. The <code>npx @playwright/mcp@latest</code> setting is for the agent tool. The Accountable app itself does not start or require MCP.</p>
+<p>A <span class="term">skill</span> is reusable agent guidance. It can change how an agent performs a task, but it does not run inside the CRM. Keep this distinction when you read the folder tree.</p></section>
+
+<section class="lesson-section" id="future"><span class="section-number">07</span><h2>Current stack versus future plans</h2><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">A document mentions Supabase and Render, but there is no hosted sign-in or deployment in this app. Which statement describes the code you have now?</p><p class="question-answer"><strong>The answer:</strong> Current manifests and runtime source are the evidence. The stack document labels those services as future options, not installed features.</p></div>
+<p><span class="path">docs/TECH_STACK.md</span> says Supabase may later provide sign-in and a hosted database, and Render may later host the application. The current source uses neither service.</p>
+<div class="table-wrap"><table><thead><tr><th>Technology</th><th>Status</th><th>Beginner meaning</th></tr></thead><tbody>
+<tr><td>SQLite</td><td>Current</td><td>Local file-based relational database.</td></tr>
+<tr><td>Supabase</td><td>Future option</td><td>Hosted platform that can provide Postgres database and authentication services.</td></tr>
+<tr><td>Render</td><td>Future option</td><td>Cloud hosting for web applications and services.</td></tr>
+<tr><td>Dark mode, multiple users, AI features</td><td>Excluded from this MVP</td><td>Not current runtime capabilities.</td></tr>
+</tbody></table></div>
+<p>This distinction matters. A course branch or a design document can mention technology that your current branch does not contain. Verify the manifests and source before you assume a service is active.</p></section>
+
+<section class="lesson-section" id="review"><span class="section-number">08</span><h2>Check your understanding</h2>
+<details class="answer"><summary>1. Why are there two running processes?</summary><p>Uvicorn serves the Python API. Vite serves and transforms the frontend and proxies API calls. The dev script coordinates their lifecycle.</p></details>
+<details class="answer"><summary>2. Does offline mean HTTP is disabled?</summary><p>No. Browser and backend communicate over loopback HTTP. No external internet connection is needed.</p></details>
+<details class="answer"><summary>3. Is the Playwright MCP server needed by a salesperson?</summary><p>No. It is an optional coding-agent integration. Playwright Test in <code>npm test</code> is the project's automated browser suite.</p></details>
+<details class="answer"><summary>4. How can you confirm whether Supabase is active?</summary><p>Check the current dependency manifests and source. The current stack document labels it as future, and the current app opens SQLite through <code>Store</code>.</p></details>
+</section>
+<div class="pager"><a href="lesson-06-data.html"><small>Previous</small>Lesson 6: Data and APIs</a><a class="next" href="lesson-08-testing.html"><small>Next</small>Lesson 8: Testing and quality →</a></div>
+<p class="page-footer">Next: learn how automated tests prove the layers work together.</p>
+</main></div></body></html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Understand Accountable records, database relationships, JSON API, Trash, workbooks, and backups."><title>Lesson 6: Data and APIs | Accountable</title><link rel="stylesheet" href="assets/tutorial.css"><script src="assets/tutorial.js" defer></script></head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Accountable<small>Technology breakdown</small></span></a><nav class="header-links" aria-label="Course links"><a href="index.html">Start here</a><a href="reference.html">Quick reference</a><a href="../TECH_STACK.md">Stack document</a></nav></header>
+<div class="layout"><aside class="sidebar"><div class="sidebar-inner"><nav aria-label="Lessons"><p class="nav-label">Learn in order</p><ol class="lesson-list"><li><a href="lesson-01-web-foundations.html">Web foundations</a></li><li><a href="lesson-02-programming.html">Programming basics</a></li><li><a href="lesson-03-tools.html">Tools and setup</a></li><li><a href="lesson-04-frontend.html">React frontend</a></li><li><a href="lesson-05-backend.html">Python backend</a></li><li><a href="lesson-06-data.html" aria-current="page">Data and APIs</a></li><li><a href="lesson-07-architecture.html">Project architecture</a></li><li><a href="lesson-08-testing.html">Testing and quality</a></li><li><a href="lesson-09-practice.html">Guided practice</a></li></ol></nav><p class="side-note">Course 06 of 09 · About 35 minutes</p></div></aside>
+<main id="main">
+<section class="hero compact"><p class="eyebrow">Lesson 06 · Data and APIs</p><h1>Follow the life of a record</h1><p class="lead">Learn how CRM records connect, how API operations change them, and how Trash, workbooks, and backups protect your work.</p><ul class="meta"><li>About 35 minutes</li><li>Prerequisite: Lessons 4–5</li><li>Database: data/accountable.db</li></ul><div class="question-card"><span class="question-label">The problem</span><p class="question-text">If you rename an organization, how do its contacts and deals find the new name? If you delete a contact by mistake, what makes a safe restore possible?</p><p class="question-answer"><strong>Why it matters:</strong> Data design answers both questions. IDs, relationships, revisions, and deletion metadata keep records connected and recoverable instead of relying on names or luck.</p></div></section>
+<nav class="toc lesson-section" aria-labelledby="contents"><h2 id="contents">In this lesson</h2><ol><li><a href="#records">CRM records and relationships</a></li><li><a href="#schema">Database tables and values</a></li><li><a href="#api">API operations</a></li><li><a href="#lifecycle">Trash and restoration</a></li><li><a href="#workbook">Spreadsheet exchange</a></li><li><a href="#backups">Full local backups</a></li><li><a href="#review">Review</a></li></ol></nav>
+
+<section class="lesson-section" id="records"><span class="section-number">01</span><h2>CRM records and relationships</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">Why not copy the organization's name into every contact and deal? It looks simpler until the organization is renamed or deleted.</p><p class="question-answer"><strong>The answer:</strong> Separate records connected by stable IDs store each fact once while preserving useful links. That prevents contradictory copies.</p></div>
+<p>A <span class="term">CRM</span> is a Customer Relationship Management system. Accountable has four record kinds:</p>
+<div class="table-wrap"><table><thead><tr><th>Record</th><th>Meaning</th><th>Important fields</th></tr></thead><tbody>
+<tr><td>Organization</td><td>A company or other organization.</td><td>Name, website, industry, notes.</td></tr>
+<tr><td>Contact</td><td>A person, with or without an organization.</td><td>Name, Lead/Qualified/Customer status, details, optional organization.</td></tr>
+<tr><td>Deal</td><td>A potential sale.</td><td>Stage, value, probability, dates, optional organization and main contact.</td></tr>
+<tr><td>Activity</td><td>A note, call, or email attached to one owner.</td><td>Type, description, occurrence time, optional follow-up and done state.</td></tr>
+</tbody></table></div>
+<p>A <span class="term">relationship</span> connects records. An organization can have many contacts and deals. A contact can have many activities. A deal can have many activities and stage events. Each contact has at most one current organization. Each deal has at most one current organization and one main contact.</p>
+<p>A deal must have an organization, a main contact, or both. These are three valid combinations. A deal with neither is invalid.</p>
+<div class="file-tree">Organization
+├── Contact
+│   └── Activity
+└── Deal ──── Main contact (optional)
+    ├── Activity
+    └── Stage event</div>
+<div class="callout remember"><strong>Lead is not another table:</strong> A lead is a contact whose status is <code>Lead</code>. The Contacts view filters the same contact records by status.</div>
+<p>The six fixed stages are New, Qualified, Proposal, Negotiation, Won, and Lost. Default probabilities are 10%, 25%, 50%, 75%, 100%, and 0%. A manual probability remains until the stage changes. A stage change applies the new stage's default.</p></section>
+
+<section class="lesson-section" id="schema"><span class="section-number">02</span><h2>Database tables and stored values</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">Why can US$0.01 rounding, duplicate names, or a time-zone conversion corrupt a sales report or a close date?</p><p class="question-answer"><strong>The answer:</strong> The schema uses deliberate representations: integer cents, unique IDs, calendar dates, and UTC timestamps. Constraints reject values that break the rules.</p></div>
+<p>The <span class="term">schema</span> defines tables, columns, keys, and constraints. Accountable's schema version is 1. Its main definitions are in <span class="path">backend/db/__init__.py</span>.</p>
+<div class="table-wrap"><table><thead><tr><th>Table</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><code>organizations</code>, <code>contacts</code>, <code>deals</code>, <code>activities</code></td><td>Current and deleted user records, including deletion metadata.</td></tr>
+<tr><td><code>events</code></td><td>Deal stage history for timelines and funnel calculations.</td></tr>
+<tr><td><code>detached</code></td><td>Organization-link history used during recovery.</td></tr>
+<tr><td><code>state</code></td><td>Schema version, dataset ID, and data revision.</td></tr>
+<tr><td><code>backup_confirmations</code></td><td>Server-issued tokens for the two-step backup deletion flow.</td></tr>
+</tbody></table></div>
+<p>Most record IDs are UUID strings. A <span class="term">UUID</span> is a practically unique generated identifier. IDs connect workbook rows and database records. Duplicate names are allowed; names are not identity keys.</p>
+<h3>Money, dates, and times</h3><ul><li><strong>Money:</strong> nonnegative integer cents. The UI adds the <code>US$</code> currency label and formats decimals.</li><li><strong>Probability:</strong> a whole number from 0 to 100.</li><li><strong>Calendar dates:</strong> ISO text such as <code>2027-01-15</code>. Expected and actual close dates have no time component.</li><li><strong>Timestamps:</strong> ISO date-time strings normalized to UTC. The browser uses local date and time for display.</li></ul>
+<p><span class="term">UTC</span> is Coordinated Universal Time, a common reference for saved timestamps. Keeping calendar dates separate prevents a close date from moving to another day because of a time-zone conversion.</p>
+<h3>Expected revenue</h3><p>For each active open deal, expected revenue is value multiplied by probability. Accountable sums the exact cent-probability products first and then rounds the total to cents.</p>
+<div class="code-block"><pre><code>Deal A: 10000 cents × 25% =  2500 cents
+Deal B: 20000 cents × 50% = 10000 cents
+Total expected revenue     = 12500 cents = US$125.00</code></pre></div>
+<p>Won and Lost deals are closed. They do not contribute to open pipeline totals. However, they remain <strong>active</strong> outside Trash and can still block some deletions.</p></section>
+
+<section class="lesson-section" id="api"><span class="section-number">03</span><h2>API operations and one request flow</h2><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">What actually travels across the wire when you click Save contact? Is the whole web page sent back and forth?</p><p class="question-answer"><strong>The answer:</strong> The browser sends a focused HTTP request with JSON. The API validates and saves it, then returns JSON that React uses to refresh the affected views.</p></div>
+<p><span class="term">CRUD</span> means Create, Read, Update, and Delete. Accountable's record API uses these main patterns:</p>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>Method and path</th></tr></thead><tbody>
+<tr><td>List records</td><td><code>GET /api/records/{kind}</code></td></tr>
+<tr><td>Read one record</td><td><code>GET /api/records/{kind}/{id}</code></td></tr>
+<tr><td>Create a record</td><td><code>POST /api/records/{kind}</code></td></tr>
+<tr><td>Edit fields</td><td><code>PATCH /api/records/{kind}/{id}</code></td></tr>
+<tr><td>Preview deletion</td><td><code>GET /api/records/{kind}/{id}/delete-preview</code></td></tr>
+<tr><td>Move to Trash</td><td><code>DELETE /api/records/{kind}/{id}</code></td></tr>
+<tr><td>List or restore Trash</td><td><code>GET /api/trash</code>, <code>POST /api/trash/{kind}/{id}</code></td></tr>
+<tr><td>Read or move Pipeline</td><td><code>GET /api/pipeline</code>, <code>POST /api/pipeline/move</code></td></tr>
+<tr><td>Read Dashboard</td><td><code>GET /api/dashboard</code></td></tr>
+<tr><td>Workbook operations</td><td><code>GET|POST /api/workbook/{mode}</code></td></tr>
+<tr><td>Backup operations</td><td><code>/api/backups</code> routes</td></tr>
+<tr><td>Read data versions</td><td><code>GET /api/version</code></td></tr>
+</tbody></table></div>
+<p>List endpoints accept search and sort query parameters. Contacts also accept <code>status</code>. Example:</p>
+<div class="code-block"><pre><code>GET /api/records/contacts?search=amina&amp;sort=name&amp;direction=asc&amp;status=Lead</code></pre></div>
+<h3>Create a contact: end to end</h3>
+<div class="code-block"><span class="code-label">Example HTTP request body</span><pre><code>POST /api/records/contacts
+Content-Type: application/json
+X-Dataset: 1
+
+{
+  "name": "Amina Yusuf",
+  "status": "Lead",
+  "email": "amina@example.com",
+  "organization_id": null
+}</code></pre></div>
+<ol class="steps"><li>React's <code>api()</code> helper serializes the body and adds headers.</li><li>Vite proxies the request to FastAPI.</li><li>The route opens <code>store.write(x_dataset)</code>.</li><li>The store checks the dataset and takes the write lock.</li><li>The record service trims and validates fields, then inserts the row.</li><li>The store advances the revision and commits.</li><li>FastAPI returns the saved row as JSON. React refreshes affected reads.</li></ol>
+<p>For a failed validation, the service raises <code>Problem</code>. The transaction rolls back. The error handler returns a useful status and JSON details. No partial record is saved.</p></section>
+
+<section class="lesson-section" id="lifecycle"><span class="section-number">04</span><h2>Soft deletion, Trash, and restoration</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">You delete a contact and its notes disappear. What if you needed that history tomorrow? What if another deal still depends on the contact?</p><p class="question-answer"><strong>The answer:</strong> Soft deletion keeps recoverable rows, blockers protect required links, and revision checks ensure the impact you confirmed is still current.</p></div>
+<p>Accountable uses <span class="term">soft deletion</span>. A delete sets deletion metadata instead of immediately removing the row. Main queries hide deleted records. Trash can restore them. There is no permanent-delete action for records in Trash.</p>
+<p>A deletion preview returns current blockers, linked records that will be cleared, and activities that will move with the record. The final delete includes the preview revision. If data changed, the server rejects the stale action.</p>
+<div class="table-wrap"><table><thead><tr><th>Record</th><th>Important rule</th></tr></thead><tbody>
+<tr><td>Contact</td><td>An active deal that uses it as main contact blocks deletion. Its active activities move with it.</td></tr>
+<tr><td>Organization</td><td>An active deal with no main contact blocks deletion. Otherwise, active contacts and deals stay but lose that organization link.</td></tr>
+<tr><td>Deal</td><td>Its active activities move with it. Restore requires at least one active organization or main contact.</td></tr>
+<tr><td>Activity</td><td>It can move independently or with its owner. Individual restore requires an active owner.</td></tr>
+</tbody></table></div>
+<p>Recovery preserves choices. For example, restoring a contact can restore its previous active organization or restore it as an individual. Restoring an organization reattaches only eligible former links. A newer link or an explicit choice to stay independent takes priority.</p>
+<p>Activities that moved with a parent have deletion-operation metadata. This prevents a parent restore from reviving an activity that the user deleted separately.</p></section>
+
+<section class="lesson-section" id="workbook"><span class="section-number">05</span><h2>Spreadsheet import and export</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">An import has 100 valid rows and one bad link. Should 100 records change before the error appears? What if the database changed after the preview?</p><p class="question-answer"><strong>The answer:</strong> Validation and one transaction prevent partial imports. A preview token detects a changed workbook or dataset and forces a fresh review.</p></div>
+<p>An Accountable workbook has up to three named sheets: <strong>Organizations</strong>, <strong>Contacts</strong>, and <strong>Deals</strong>. Download the template from Data to get the required headers.</p>
+<ol class="flow"><li>Upload and preview</li><li>Review adds and updates</li><li>Apply one transaction</li></ol>
+<p>A blank ID creates a record with a generated ID. A known active ID updates that record. A new supplied ID can link rows across sheets and is retained. Matching uses IDs only, never duplicate names.</p>
+<p>The parser checks sheet names, headers, cell types, duplicate IDs, formulas, values, and links. Dollar values convert to integer cents. Dates must be Excel dates or <code>YYYY-MM-DD</code>. Blank optional cells clear fields during an update.</p>
+<p>The preview token is a SHA-256 hash of the workbook bytes, dataset, and revision. A <span class="term">hash</span> produces a fixed-length fingerprint. If the file or data changes before Apply, the token no longer matches. The user must preview again.</p>
+<p>Export includes active organizations, contacts, and deals. It does not include activities, Trash, stage history, follow-up state, or board order.</p>
+<div class="callout warning"><strong>A workbook is not a full backup:</strong> Use <code>npm run save</code> for complete recovery. Use a workbook to exchange the three main active record types.</div></section>
+
+<section class="lesson-section" id="backups"><span class="section-number">06</span><h2>Full local backups and replacement</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">You are about to load an old backup or reset the dataset. What happens to the records currently on screen if something goes wrong halfway?</p><p class="question-answer"><strong>The answer:</strong> The app saves current data first, validates the snapshot, writes files atomically, and replaces tables in one transaction. A failed backup blocks replacement.</p></div>
+<p><code>npm run save</code> snapshots all application data tables into a versioned JSON document. Backups go to <span class="path">data/backups/</span> by default. A backup includes active records, Trash, events, recovery links, follow-up state, and board positions.</p>
+<div class="code-block"><span class="code-label">Simplified backup document</span><pre><code>{
+  "format": 1,
+  "id": "backup-...",
+  "created_at": "...",
+  "checksum": "SHA-256 of the data",
+  "data": {
+    "organizations": [],
+    "contacts": [],
+    "deals": [],
+    "activities": [],
+    "events": [],
+    "detached": []
+  }
+}</code></pre></div>
+<p>The service writes a temporary file, flushes it to disk, and publishes it with an atomic file replacement. The checksum and schema checks detect an invalid or damaged backup. The checksum is not encryption. Backup JSON can contain readable business data.</p>
+<p><code>npm run load -- &lt;backup-id&gt;</code> validates the selected backup, saves the current data first, then replaces all application tables in one writer transaction. If automatic backup fails, replacement does not proceed. A successful load advances the dataset ID.</p>
+<p><code>npm run seed</code> follows the same safety pattern before replacing current data with samples. It asks you to type <code>yes</code>. Press Enter to cancel.</p>
+<p>Deleting a backup is permanent and separate from Trash. The Data view requires two confirmations. The backend binds the confirmation token to the selected backup ID.</p>
+<div class="callout warning"><strong>Protect business data:</strong> The database and backups are local and ignored by Git. Keep them in access-controlled storage. Do not send real customer backups to a public repository or an untrusted service.</div></section>
+
+<section class="lesson-section" id="review"><span class="section-number">07</span><h2>Check your understanding</h2>
+<details class="answer"><summary>1. What is the difference between active and open?</summary><p>Active means outside Trash. Open means a deal is in New, Qualified, Proposal, or Negotiation. A Won deal outside Trash is active but not open.</p></details>
+<details class="answer"><summary>2. Why does a deletion preview include a revision?</summary><p>It proves which data state the user reviewed. If records changed before confirmation, the server rejects the old preview instead of applying a deletion to unseen effects.</p></details>
+<details class="answer"><summary>3. Why can an export not restore the whole app?</summary><p>It excludes activities, Trash, stage events, follow-up completion, recovery metadata, and board order. A full JSON backup includes those parts.</p></details>
+<details class="answer"><summary>4. Why match workbook rows by ID instead of name?</summary><p>Duplicate names are valid. IDs provide stable identity and unambiguous cross-sheet links.</p></details>
+</section>
+<div class="pager"><a href="lesson-05-backend.html"><small>Previous</small>Lesson 5: Python backend</a><a class="next" href="lesson-07-architecture.html"><small>Next</small>Lesson 7: Project architecture →</a></div>
+<p class="page-footer">Next: see how every repository folder and runtime process fits together.</p>
+</main></div></body></html>

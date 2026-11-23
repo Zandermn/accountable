@@ -201,6 +201,15 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
 def listing(conn, kind, search="", sort="name", direction="asc", status=None, today=None):
     table = table_for(kind)
     stmt = select(table).where(table.c.deleted_at.is_(None))
+    if kind == "organizations":
+        for linked in (contacts, deals):
+            count = (
+                select(func.count())
+                .select_from(linked)
+                .where(linked.c.organization_id == organizations.c.id, linked.c.deleted_at.is_(None))
+                .scalar_subquery()
+            )
+            stmt = stmt.add_columns(count.label(linked.name + "_count"))
     if kind in ("deals", "contacts"):
         stmt = stmt.outerjoin(
             organizations, organizations.c.id == table.c.organization_id
@@ -218,7 +227,7 @@ def listing(conn, kind, search="", sort="name", direction="asc", status=None, to
             row["close_date"] = row["expected_date"] if opened else row["actual_date"]
             row["late"] = opened and row["expected_date"] < (today or date.today()).isoformat()
     visible = {
-        "organizations": ("name", "website", "industry"),
+        "organizations": ("name", "industry", "website", "contacts_count", "deals_count"),
         "contacts": ("name", "status", "organization", "email", "phone"),
         "deals": (
             "name",
@@ -235,10 +244,12 @@ def listing(conn, kind, search="", sort="name", direction="asc", status=None, to
         term = search.strip().casefold()
 
         def matches(row):
-            values = [str(row.get(k) or "") for k in visible[kind]]
+            values = [str(row[k]) for k in visible[kind] if row.get(k) is not None]
             if kind == "deals":
+                close = date.fromisoformat(row["close_date"])
                 values.extend(
                     [
+                        f"{close:%b} {close.day}",
                         f"US${row['value_cents'] / 100:,.2f}",
                         f"{row['probability']}%",
                         "Late" if row["late"] else "",

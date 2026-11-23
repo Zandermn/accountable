@@ -1,25 +1,23 @@
 import { Link, NavLink } from 'react-router-dom';
+import { BriefcaseBusiness, Building2, ContactRound, Database, LayoutDashboard, SquareKanban, Trash2 } from 'lucide-react';
 import { Workspace } from './Workspace';
-export const sections = [
-  'Dashboard',
-  'Organizations',
-  'Contacts',
-  'Deals',
-  'Pipeline',
-  'Trash',
-  'Data',
+const sections = [
+  { name: 'Dashboard', icon: LayoutDashboard },
+  { name: 'Organizations', icon: Building2 },
+  { name: 'Contacts', icon: ContactRound },
+  { name: 'Deals', icon: BriefcaseBusiness },
+  { name: 'Pipeline', icon: SquareKanban },
+  { name: 'Trash', icon: Trash2 },
+  { name: 'Data', icon: Database },
 ];
 export function App() {
-  const nav = (name: string) => (
+  const nav = ({ name, icon: Icon }: (typeof sections)[number]) => (
     <NavLink
       key={name}
       end={name === 'Dashboard'}
       to={name === 'Dashboard' ? '/' : '/' + name.toLowerCase()}
     >
-      <i
-        className={name === 'Contacts' ? 'round' : name === 'Pipeline' ? 'board' : undefined}
-        aria-hidden="true"
-      />
+      <Icon size={18} strokeWidth={1.75} aria-hidden="true" focusable="false" />
       {name}
     </NavLink>
   );

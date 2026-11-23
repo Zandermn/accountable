@@ -2,6 +2,17 @@
 
 The local CRM is implemented. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app keeps records and board order in SQLite.
 
+## Sidebar icons
+
+Each of the seven sidebar links has a distinct Lucide icon and a visible text label. The app bundles the icons for offline use. Playwright verified all seven in Chrome on Windows.
+
+## Technology tutorial
+
+- Added the [beginner HTML technology course](techbreakdown/index.html) in `docs/techbreakdown/`. Nine lessons build from web and programming basics to the frontend, backend, data, architecture, tests, and guided practice. A quick reference covers the stack, commands, files, API routes, and glossary.
+- Made the course question-led. Its opening explains why understanding the app matters, and 74 practical problem-and-answer prompts introduce the course topics. Each instructional section presents a problem before the concept that solves it.
+- The 11-page course works offline with local fonts and optional copy-code controls. Checked all 334 local file and anchor references and every question-led section. Chrome passed desktop and mobile rendering, navigation, console, external-request, and contrast checks.
+- `npm test` passed after the documentation changes: 8 Vitest, 31 pytest, and 10 Playwright tests.
+
 ## One-time setup
 
 Install Node.js 26, uv, and Google Chrome. Node.js 24 or later is supported. Open a terminal in this repository. With internet access, run these commands.
@@ -28,6 +39,24 @@ The first launch fills `data/accountable.db` with sample records. Each later lau
 | `npm run seed` | Type `yes` to save a full backup and replace the current data with fresh samples. Press Enter to cancel. |
 
 Use **Data** to download the workbook template, preview an import, export active sales records, or delete a backup. Backup deletion requires two confirmations. Use **Trash** to restore an individual record.
+
+## Deal Workspace visual check on Windows (2026-11-23)
+
+Compared all five sales views in Chrome with the [approved mockup](mockups/06-deal-workspace.html) at 1440 × 900. Playwright captured the mockup and the app before and after the changes. The app screenshots use the local sales records.
+
+The Dashboard now shows the board below the charts. Opening a card there keeps the selected deal beside the board. The Dashboard shows three recent activities and a control to expand the list. The charts, follow-up rows, board totals, cards, and deal notes use the mockup layout. The directories show record counts and compact rows. Organizations also shows the number of linked active contacts and deals.
+
+The Pipeline totals measured 36 pixels high in both the app and the mockup. The deal panel fit beside the board at 1440 and 1280 pixels wide. At 1100 pixels, it moved below the board.
+
+The production build passed. The final `npm test` run passed all 49 tests, including the linked-record counts and the Dashboard card selection and focus checks.
+
+## Test runner verification on Windows (2026-11-23)
+
+`npm test` runs all three suites even if one fails. Each run gives pytest a temporary directory for its databases and cache. This avoids a Windows access error when a different account owns a previous pytest directory.
+
+A temporary failing Vitest test confirmed the failure path. All 31 backend tests and 10 Chrome tests still ran and passed. The command returned exit code 1.
+
+After removal of the temporary test, all 49 project tests passed (8 Vitest, 31 pytest, and 10 Playwright). The command returned exit code 0.
 
 ## Windows verification · 2026-11-22
 

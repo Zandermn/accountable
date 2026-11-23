@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Programming basics with Python and JavaScript examples from Accountable.">
+  <title>Lesson 2: Programming basics | Accountable</title>
+  <link rel="stylesheet" href="assets/tutorial.css"><script src="assets/tutorial.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Accountable<small>Technology breakdown</small></span></a><nav class="header-links" aria-label="Course links"><a href="index.html">Start here</a><a href="reference.html">Quick reference</a><a href="../TECH_STACK.md">Stack document</a></nav></header>
+<div class="layout">
+<aside class="sidebar"><div class="sidebar-inner"><nav aria-label="Lessons"><p class="nav-label">Learn in order</p><ol class="lesson-list"><li><a href="lesson-01-web-foundations.html">Web foundations</a></li><li><a href="lesson-02-programming.html" aria-current="page">Programming basics</a></li><li><a href="lesson-03-tools.html">Tools and setup</a></li><li><a href="lesson-04-frontend.html">React frontend</a></li><li><a href="lesson-05-backend.html">Python backend</a></li><li><a href="lesson-06-data.html">Data and APIs</a></li><li><a href="lesson-07-architecture.html">Project architecture</a></li><li><a href="lesson-08-testing.html">Testing and quality</a></li><li><a href="lesson-09-practice.html">Guided practice</a></li></ol></nav><p class="side-note">Course 02 of 09 · About 35 minutes</p></div></aside>
+<main id="main">
+<section class="hero compact"><p class="eyebrow">Lesson 02 · Programming</p><h1>Read your first code</h1><p class="lead">Learn the small set of programming ideas used throughout Accountable. Examples use JavaScript and Python, the project's two main languages.</p><ul class="meta"><li>About 35 minutes</li><li>Prerequisite: Lesson 1</li><li>No memorization needed</li></ul><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">Why can the number <code>25</code> and the text <code>"25"</code> behave differently? And how can a few simple instructions become a complete CRM?</p><p class="question-answer"><strong>Why it matters:</strong> If you can read values, decisions, functions, and errors, you can predict what the source will do. That is the first step toward changing code safely.</p></div></section>
+<nav class="toc lesson-section" aria-labelledby="contents"><h2 id="contents">In this lesson</h2><ol><li><a href="#programs">Programs and values</a></li><li><a href="#variables">Variables and operators</a></li><li><a href="#collections">Collections</a></li><li><a href="#decisions">Conditions and loops</a></li><li><a href="#functions">Functions and modules</a></li><li><a href="#objects">Classes and objects</a></li><li><a href="#errors">Errors and asynchronous code</a></li><li><a href="#review">Review</a></li></ol></nav>
+
+<section class="lesson-section" id="programs"><span class="section-number">01</span><h2>Programs, statements, and values</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">A user types <code>25</code> into a probability field. Is that a number to calculate with or text to display? What would happen if the program confused the two?</p><p class="question-answer"><strong>The answer:</strong> Data types tell the program what a value means and which operations are valid. Statements and expressions use those values to do work.</p></div>
+<p>A <span class="term">program</span> is a sequence of instructions. A <span class="term">statement</span> performs an action. An <span class="term">expression</span> produces a value. A program <span class="term">executes</span>, or runs, those instructions.</p>
+<p>A <span class="term">literal</span> is a value written directly in code. These are common data types:</p>
+<div class="table-wrap"><table><thead><tr><th>Type</th><th>JavaScript / TypeScript</th><th>Python</th><th>Use</th></tr></thead><tbody>
+<tr><td>String</td><td><code>'New'</code></td><td><code>"New"</code></td><td>Text</td></tr>
+<tr><td>Number</td><td><code>12500</code>, <code>2.5</code></td><td><code>12500</code>, <code>2.5</code></td><td>Counts and amounts</td></tr>
+<tr><td>Boolean</td><td><code>true</code>, <code>false</code></td><td><code>True</code>, <code>False</code></td><td>Yes/no state</td></tr>
+<tr><td>No value</td><td><code>null</code>, <code>undefined</code></td><td><code>None</code></td><td>Missing or empty value</td></tr>
+</tbody></table></div>
+<div class="callout remember"><strong>Case matters:</strong> JavaScript uses <code>true</code>. Python uses <code>True</code>. A number and its string form are different: <code>25</code> is a number, while <code>"25"</code> is text.</div>
+<p>Accountable stores a deal value as an integer number of cents. For example, <code>12500</code> means US$125.00. This avoids many decimal rounding problems. It stores probability as a whole percentage from 0 to 100.</p></section>
+
+<section class="lesson-section" id="variables"><span class="section-number">02</span><h2>Variables and operators</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How can the app calculate expected revenue for any deal without writing a separate formula for every value and probability?</p><p class="question-answer"><strong>The answer:</strong> Variables name changing values, while operators perform calculations and comparisons. One formula can then work for every deal.</p></div>
+<p>A <span class="term">variable</span> is a name that refers to a value. <span class="term">Assignment</span> stores or changes that reference. An <span class="term">operator</span> calculates or compares values.</p>
+<div class="grid"><div><div class="code-block"><span class="code-label">JavaScript</span><pre><code>const stage = 'New';
+let probability = 10;
+probability = 25;
+
+const expected = 10000 * probability / 100;</code></pre></div></div><div><div class="code-block"><span class="code-label">Python</span><pre><code>stage = "New"
+probability = 10
+probability = 25
+
+expected = 10000 * probability / 100</code></pre></div></div></div>
+<p>JavaScript <code>const</code> prevents reassignment of that variable name. <code>let</code> permits reassignment. Python variables can be reassigned by default. Neither example needs a semicolon in Python.</p>
+<div class="table-wrap"><table><thead><tr><th>Operation</th><th>JavaScript</th><th>Python</th></tr></thead><tbody>
+<tr><td>Arithmetic</td><td colspan="2"><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code></td></tr>
+<tr><td>Equality comparison</td><td><code>===</code> (strict)</td><td><code>==</code></td></tr>
+<tr><td>Greater / less</td><td colspan="2"><code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code></td></tr>
+<tr><td>And / or / not</td><td><code>&amp;&amp;</code>, <code>||</code>, <code>!</code></td><td><code>and</code>, <code>or</code>, <code>not</code></td></tr>
+</tbody></table></div>
+<p>One <code>=</code> assigns. A comparison such as <code>===</code> or <code>==</code> asks whether values match and produces a boolean.</p>
+<p>See <span class="path">backend/services/sales.py</span>. Its <code>totals()</code> function adds <code>value_cents</code> and calculates expected revenue. The extra <code>+ 50</code> before integer division rounds to the nearest cent after all deal values are summed.</p></section>
+
+<section class="lesson-section" id="collections"><span class="section-number">03</span><h2>Collections: group related values</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How can the app display two contacts today and two hundred tomorrow without creating a new variable for every person?</p><p class="question-answer"><strong>The answer:</strong> Arrays hold ordered groups, while objects and dictionaries give names to each record's fields. Transformations process groups of any size.</p></div>
+<p>A <span class="term">list</span> or <span class="term">array</span> stores values in order. An <span class="term">object</span> or <span class="term">dictionary</span> stores named key-value pairs.</p>
+<div class="grid"><div><div class="code-block"><span class="code-label">JavaScript</span><pre><code>const stages = ['New', 'Qualified', 'Won'];
+const deal = {
+  name: 'Renewal',
+  value_cents: 10000,
+  probability: 25
+};
+
+console.log(stages[0]);      // New
+console.log(deal.name);      // Renewal</code></pre></div></div><div><div class="code-block"><span class="code-label">Python</span><pre><code>stages = ["New", "Qualified", "Won"]
+deal = {
+    "name": "Renewal",
+    "value_cents": 10000,
+    "probability": 25,
+}
+
+print(stages[0])       # New
+print(deal["name"])    # Renewal</code></pre></div></div></div>
+<p>Indexes start at zero. <code>stages[0]</code> is the first item. JavaScript often accesses an object property with a dot. Python dictionary values commonly use square brackets and a key.</p>
+<p>JavaScript arrays have methods such as <code>.map()</code>, <code>.filter()</code>, and <code>.find()</code>. Python has loops and comprehensions. Accountable uses these operations to select visible records, build table cells, and group pipeline cards.</p>
+<div class="code-block"><span class="code-label">A JavaScript transformation</span><pre><code>const names = ['Ada', 'Grace', 'Linus'];
+const labels = names.map((name) =&gt; 'Contact: ' + name);
+// ['Contact: Ada', 'Contact: Grace', 'Contact: Linus']</code></pre></div>
+<p>The arrow <code>=&gt;</code> defines a small function. <code>.map()</code> calls it for every item and returns a new array.</p></section>
+
+<section class="lesson-section" id="decisions"><span class="section-number">04</span><h2>Conditions and loops</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How can the app reject a deal with no linked owner, accept a valid one, and repeat that check for every row in an import?</p><p class="question-answer"><strong>The answer:</strong> Conditions choose the valid or invalid path. Loops repeat the same logic for every item without duplicated code.</p></div>
+<p>An <code>if</code> statement selects a branch when a condition is true. A <span class="term">loop</span> repeats work for items or until a condition changes.</p>
+<div class="grid"><div><div class="code-block"><span class="code-label">JavaScript</span><pre><code>if (deal.stage === 'Won') {
+  console.log('Closed as won');
+} else {
+  console.log('Not won');
+}
+
+for (const stage of stages) {
+  console.log(stage);
+}</code></pre></div></div><div><div class="code-block"><span class="code-label">Python</span><pre><code>if deal["stage"] == "Won":
+    print("Closed as won")
+else:
+    print("Not won")
+
+for stage in stages:
+    print(stage)</code></pre></div></div></div>
+<p>JavaScript uses braces <code>{ }</code> to group blocks. Python uses indentation. In Python, four spaces are the common indentation width. Do not mix tabs and spaces.</p>
+<p>Real examples include:</p><ul><li><span class="path">backend/services/records.py</span> checks whether a deal has an organization or main contact.</li><li><span class="path">frontend/src/Records.tsx</span> maps each database row to a table row.</li><li><span class="path">backend/services/sales.py</span> loops through deals to calculate six monthly chart buckets.</li></ul></section>
+
+<section class="lesson-section" id="functions"><span class="section-number">05</span><h2>Functions, parameters, and modules</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">Forms, imports, and commands all need the same record validation. Should every file contain another copy of those rules?</p><p class="question-answer"><strong>The answer:</strong> Functions package reusable operations with named inputs and results. Modules organize those functions so other files can import one shared implementation.</p></div>
+<p>A <span class="term">function</span> is a reusable block of logic. A <span class="term">parameter</span> is an input name in its definition. An <span class="term">argument</span> is the value supplied in a call. <code>return</code> sends a result to the caller.</p>
+<div class="grid"><div><div class="code-block"><span class="code-label">TypeScript</span><pre><code>function money(cents: number): string {
+  return 'US$' + (cents / 100).toFixed(2);
+}
+
+money(12500); // US$125.00</code></pre></div></div><div><div class="code-block"><span class="code-label">Python</span><pre><code>def money(cents):
+    return f"US${cents / 100:.2f}"
+
+money(12500)  # US$125.00</code></pre></div></div></div>
+<p>The Python example uses an <span class="term">f-string</span> to insert a value into text. TypeScript annotations such as <code>: number</code> describe expected types. Lesson 4 explains them.</p>
+<p>A <span class="term">module</span> is a file that can export code for other files. An <code>import</code> makes that code available. A <span class="term">package</span> or <span class="term">library</span> is reusable code distributed for many projects.</p>
+<div class="code-block"><span class="code-label">Imports in backend/main.py</span><pre><code>from fastapi import FastAPI, Request
+from sqlalchemy import select
+from backend.api.records import router as record_routes</code></pre></div>
+<p>The first two imports use third-party packages. The third imports this project's own module. Keeping API routes, business rules, and schema in different modules makes each part easier to find and test.</p></section>
+
+<section class="lesson-section" id="objects"><span class="section-number">06</span><h2>Classes and objects</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">The app needs to keep a database path, engine, backups folder, and transaction behavior together. Where should that related state and logic live?</p><p class="question-answer"><strong>The answer:</strong> A class defines that bundle. Each object is an instance with its own state and shared methods, such as Accountable's <code>Store</code>.</p></div>
+<p>A <span class="term">class</span> defines a kind of object with data and behavior. An <span class="term">object</span> or <span class="term">instance</span> is one value created from that class. A <span class="term">method</span> is a function attached to an object.</p>
+<div class="code-block"><span class="code-label">A small Python class</span><pre><code>class Counter:
+    def __init__(self):
+        self.value = 0
+
+    def increment(self):
+        self.value += 1
+
+counter = Counter()
+counter.increment()
+print(counter.value)  # 1</code></pre></div>
+<p>Accountable's <code>Store</code> class in <span class="path">backend/db/__init__.py</span> owns the database engine, file paths, and read/write transaction methods. The <code>Problem</code> class represents an application error with an HTTP status and response details. You can use the app without knowing class theory. Read a class as a blueprint and an object as the thing built from it.</p></section>
+
+<section class="lesson-section" id="errors"><span class="section-number">07</span><h2>Errors and asynchronous code</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">The network is slow or the server rejects a request. Should the whole interface freeze or erase your draft?</p><p class="question-answer"><strong>The answer:</strong> Async code waits without blocking other work. Errors select a recovery path, and <code>finally</code> clears temporary states such as busy.</p></div>
+<p>An <span class="term">exception</span> or runtime <span class="term">error</span> interrupts the normal path. Code can raise an error deliberately when input is invalid. It can catch an error to show a useful message instead of stopping everything.</p>
+<div class="grid"><div><div class="code-block"><span class="code-label">JavaScript</span><pre><code>try {
+  await saveDeal();
+} catch (error) {
+  showMessage(error.message);
+} finally {
+  setBusy(false);
+}</code></pre></div></div><div><div class="code-block"><span class="code-label">Python</span><pre><code>try:
+    value = int(text)
+except ValueError:
+    print("Enter a whole number.")
+finally:
+    print("Check complete.")</code></pre></div></div></div>
+<p><code>finally</code> runs whether the operation succeeds or fails. The frontend uses it to clear a busy state after a request.</p>
+<h3>Why some code uses async and await</h3>
+<p>A network request takes time. <span class="term">Asynchronous</span> code lets a program handle waiting without blocking all other work. JavaScript <code>fetch()</code> returns a <span class="term">Promise</span>: a future result or failure. <code>await</code> pauses that async function until the Promise settles.</p>
+<div class="code-block"><span class="code-label">Simplified from frontend/src/data.tsx</span><pre><code>async function loadContacts() {
+  const response = await fetch('/api/records/contacts');
+  if (!response.ok) {
+    throw new Error('The request failed.');
+  }
+  return response.json();
+}</code></pre></div>
+<p>Do not confuse <code>await</code> with a database commit. Waiting for an HTTP response only says that the server responded. Accountable's backend commits a successful write transaction before it returns success.</p>
+<p>A <span class="term">context manager</span> is a related Python pattern. <code>with store.write() as conn:</code> gives the service a connection and commits or rolls back when the block exits. Lesson 5 explains it.</p></section>
+
+<section class="lesson-section" id="review"><span class="section-number">08</span><h2>Practice and review</h2>
+<div class="callout practice"><strong>Predict the result:</strong> A deal has <code>value_cents = 20000</code> and <code>probability = 50</code>. What is its unrounded expected value in cents?</div>
+<details class="answer"><summary>Answer</summary><p><code>20000 * 50 / 100 = 10000</code> cents, or US$100.00. Accountable sums these products for all open deals before it rounds the total.</p></details>
+<details class="answer"><summary>1. What is the difference between a function parameter and an argument?</summary><p>A parameter is the named input in the function definition. An argument is the actual value in one call. In <code>money(cents)</code>, <code>cents</code> is a parameter. In <code>money(12500)</code>, <code>12500</code> is an argument.</p></details>
+<details class="answer"><summary>2. Why does Accountable use cents instead of a dollar decimal?</summary><p>Integer cents give exact arithmetic at the storage precision. The workbook code converts decimal dollars to integer cents and rejects amounts with fractions of a cent.</p></details>
+<details class="answer"><summary>3. What does a module import do?</summary><p>It lets one file use exported definitions from another file. This supports small modules with clear jobs instead of one large source file.</p></details>
+</section>
+<div class="pager"><a href="lesson-01-web-foundations.html"><small>Previous</small>Lesson 1: Web foundations</a><a class="next" href="lesson-03-tools.html"><small>Next</small>Lesson 3: Tools and setup →</a></div>
+<p class="page-footer">Next: understand the tools that install and run this code.</p>
+</main></div>
+</body></html>

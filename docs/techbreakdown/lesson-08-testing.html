@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Learn Vitest, pytest, Playwright, assertions, fixtures, and Accountable's test commands."><title>Lesson 8: Testing and quality | Accountable</title><link rel="stylesheet" href="assets/tutorial.css"><script src="assets/tutorial.js" defer></script></head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Accountable<small>Technology breakdown</small></span></a><nav class="header-links" aria-label="Course links"><a href="index.html">Start here</a><a href="reference.html">Quick reference</a><a href="../TECH_STACK.md">Stack document</a></nav></header>
+<div class="layout"><aside class="sidebar"><div class="sidebar-inner"><nav aria-label="Lessons"><p class="nav-label">Learn in order</p><ol class="lesson-list"><li><a href="lesson-01-web-foundations.html">Web foundations</a></li><li><a href="lesson-02-programming.html">Programming basics</a></li><li><a href="lesson-03-tools.html">Tools and setup</a></li><li><a href="lesson-04-frontend.html">React frontend</a></li><li><a href="lesson-05-backend.html">Python backend</a></li><li><a href="lesson-06-data.html">Data and APIs</a></li><li><a href="lesson-07-architecture.html">Project architecture</a></li><li><a href="lesson-08-testing.html" aria-current="page">Testing and quality</a></li><li><a href="lesson-09-practice.html">Guided practice</a></li></ol></nav><p class="side-note">Course 08 of 09 · About 30 minutes</p></div></aside>
+<main id="main">
+<section class="hero compact"><p class="eyebrow">Lesson 08 · Testing</p><h1>Check behavior at every layer</h1><p class="lead">Learn how frontend tests, backend tests, and real-browser tests catch different problems without touching your sales data.</p><ul class="meta"><li>About 30 minutes</li><li>Prerequisite: Lessons 4–7</li><li>Main command: npm test</li></ul><div class="question-card"><span class="question-label">The problem</span><p class="question-text">Your small change works on the Dashboard. How can you know it did not break Trash recovery, workbook imports, keyboard movement, or offline startup?</p><p class="question-answer"><strong>Why it matters:</strong> Tests turn repeated checks into evidence. Knowing what each suite proves—and what it cannot prove—helps you trust a pass and investigate a failure correctly.</p></div></section>
+<nav class="toc lesson-section" aria-labelledby="contents"><h2 id="contents">In this lesson</h2><ol><li><a href="#basics">Tests, assertions, and fixtures</a></li><li><a href="#vitest">Vitest and Testing Library</a></li><li><a href="#pytest">pytest and FastAPI TestClient</a></li><li><a href="#playwright">Playwright and Chrome</a></li><li><a href="#runner">The combined test runner</a></li><li><a href="#failures">Read a failure</a></li><li><a href="#quality">Beyond automated tests</a></li><li><a href="#review">Review</a></li></ol></nav>
+
+<section class="lesson-section" id="basics"><span class="section-number">01</span><h2>Tests, assertions, fixtures, and isolation</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">You expect US$25.00 of expected revenue. Do you need to click through the app and recalculate it by hand after every change?</p><p class="question-answer"><strong>The answer:</strong> A test arranges known data, performs an action, and asserts the expected result. Fixtures make that check repeatable and isolated.</p></div>
+<p>An <span class="term">automated test</span> runs behavior and checks the result. An <span class="term">assertion</span> states what must be true. If it is false, the test fails.</p>
+<div class="code-block"><span class="code-label">The basic pattern</span><pre><code>// Arrange: prepare known data.
+const deal = { value_cents: 10000, probability: 25 };
+
+// Act: run the behavior.
+const expected = deal.value_cents * deal.probability / 100;
+
+// Assert: check the result.
+expect(expected).toBe(2500);</code></pre></div>
+<p>A <span class="term">fixture</span> prepares reusable test resources and cleans them up. Accountable fixtures create isolated apps, databases, backup folders, and ports.</p>
+<div class="table-wrap"><table><thead><tr><th>Level</th><th>Scope</th><th>Strength</th><th>Limit</th></tr></thead><tbody>
+<tr><td>Unit</td><td>One function or component</td><td>Fast and specific</td><td>Can miss integration problems</td></tr>
+<tr><td>Integration</td><td>Several real parts together</td><td>Checks their contract</td><td>More setup and slower</td></tr>
+<tr><td>End to end</td><td>User flow through the real system</td><td>Closest to actual use</td><td>Slower and more moving parts</td></tr>
+</tbody></table></div>
+<p>A <span class="term">mock</span> or stub replaces a dependency with controlled behavior. Frontend unit tests replace <code>fetch()</code>. Browser tests do not mock the backend: they start the real app.</p>
+<div class="callout remember"><strong>Test isolation:</strong> Passing tests must not depend on your personal database or on another test's leftovers. Accountable gives each backend or browser test temporary data resources.</div></section>
+
+<section class="lesson-section" id="vitest"><span class="section-number">02</span><h2>Vitest, Testing Library, and jsdom</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How can you check a dialog's focus behavior hundreds of times without opening Chrome and clicking through it yourself?</p><p class="question-answer"><strong>The answer:</strong> Vitest runs the component in jsdom, Testing Library interacts through accessible roles and labels, and mocks control API responses.</p></div>
+<p><span class="term">Vitest</span> runs frontend unit tests. <span class="term">React Testing Library</span> renders components and finds elements by roles, labels, and text. <span class="term">jsdom</span> supplies a DOM implementation inside Node.js. It is not a full Chrome browser.</p>
+<p>The config is in <span class="path">frontend/vite.config.ts</span>. Tests use <code>environment: 'jsdom'</code> and load <span class="path">frontend/src/test-setup.ts</span>. Test files sit beside source files with names such as <span class="path">Sales.test.tsx</span>.</p>
+<div class="code-block"><span class="code-label">Simplified frontend test</span><pre><code>vi.stubGlobal('fetch', vi.fn(async () =&gt; ({
+  ok: true,
+  json: async () =&gt; board
+})));
+
+render(
+  &lt;MemoryRouter initialEntries={['/pipeline']}&gt;
+    &lt;SalesWorkspace onBoard={true} id="" /&gt;
+  &lt;/MemoryRouter&gt;
+);
+
+fireEvent.click(await screen.findByLabelText('Move Renewal'));
+expect(screen.getByRole('dialog')).toBeVisible();</code></pre></div>
+<ul><li><code>vi.fn()</code> creates a mock function.</li><li><code>vi.stubGlobal()</code> replaces a browser global for the test.</li><li><code>MemoryRouter</code> supplies test URLs without changing a real browser address.</li><li><code>screen.findBy...</code> waits for asynchronous rendering.</li><li><code>expect()</code> makes the assertion. jest-dom adds DOM-specific matchers.</li></ul>
+<p>Real frontend tests check query parameters, form errors, note-draft preservation, blocker links, backup confirmation cancellation, and recovery after a rejected board move.</p>
+<p>Run only this suite with:</p><div class="code-block"><pre><code>npm run test:ui</code></pre></div></section>
+
+<section class="lesson-section" id="pytest"><span class="section-number">03</span><h2>pytest, HTTPX, and FastAPI TestClient</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">How can tests create, delete, and restore records without deleting anything from your actual <code>accountable.db</code>?</p><p class="question-answer"><strong>The answer:</strong> pytest fixtures create a temporary empty app and backup path. TestClient and HTTPX exercise its API without using your saved dataset.</p></div>
+<p><span class="term">pytest</span> discovers and runs Python tests. <span class="term">HTTPX</span> is an HTTP client library. FastAPI's <code>TestClient</code> uses it to call the application in the test process without opening a public network port.</p>
+<p>The <code>api</code> fixture in <span class="path">backend/tests/conftest.py</span> does four important things:</p><ol><li>Uses pytest's <code>tmp_path</code> for a unique temporary directory.</li><li>Sets a temporary backup path with <code>monkeypatch</code>.</li><li>Builds the app with <code>seed=False</code>, so each test starts empty.</li><li>Adds <code>X-Dataset: 1</code> to client headers for writes.</li></ol>
+<div class="code-block"><span class="code-label">Simplified backend test</span><pre><code>def test_expected_revenue(api):
+    org = add(api, "organizations", name="Buyer")
+    deal(api, value_cents=10000, probability=25,
+         organization_id=org["id"])
+
+    response = api.get("/api/dashboard")
+
+    assert response.status_code == 200
+    assert response.json()["totals"]["expected"] == 2500</code></pre></div>
+<p>The backend suite tests API behavior and some service calculations directly. Cases cover record rules, links, stale writes, deletion and restore, stage events, ordering, dates, totals, workbook safety, backup validation, and startup persistence.</p>
+<p>The root <span class="path">pyproject.toml</span> sets <code>testpaths = ["backend/tests"]</code> and puts the repository root on Python's import path.</p>
+<p>Run only this suite with:</p><div class="code-block"><pre><code>npm run test:api</code></pre></div></section>
+
+<section class="lesson-section" id="playwright"><span class="section-number">04</span><h2>Playwright Test and installed Chrome</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">Every component and API test passes, but a real user still cannot drag a card or restart the app. Which layer can expose that gap?</p><p class="question-answer"><strong>The answer:</strong> Playwright drives installed Chrome through the real frontend, backend, and database. Its isolated fixture can even restart the full app.</p></div>
+<p><span class="term">Playwright Test</span> controls a real browser. Accountable uses installed Google Chrome through <code>channel: 'chrome'</code>. End-to-end files live in <span class="path">e2e/</span>.</p>
+<div class="code-block"><span class="code-label">Simplified browser test</span><pre><code>test('opens Contacts', async ({ page }) =&gt; {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Contacts', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Contacts', exact: true })
+  ).toBeVisible();
+});</code></pre></div>
+<p>Playwright auto-waits for many UI conditions. Tests use accessible locators such as role and label. This checks what a user can perceive instead of depending only on implementation details.</p>
+<p>The custom fixture in <span class="path">e2e/fixture.ts</span>:</p><ul><li>Creates a temporary database and backup directory.</li><li>Finds free frontend and API ports.</li><li>Sets npm offline mode.</li><li>Starts <code>npm run dev -- --stdin</code> and waits for the API.</li><li>Lets a test restart the app to check persistence.</li><li>Stops processes and removes temporary files afterward.</li></ul>
+<p>The config uses one worker so browser cases do not compete for shared process resources. You do not need to start the app before running browser tests.</p>
+<p>Run only this suite with:</p><div class="code-block"><pre><code>npm run test:e2e</code></pre></div>
+<p>Playwright can write screenshots, traces, and failure output under <span class="path">test-results/</span>. These are generated files, not source code.</p></section>
+
+<section class="lesson-section" id="runner"><span class="section-number">05</span><h2>One command, three suites</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">If the frontend suite fails, why should you still want backend and browser results from the same run?</p><p class="question-answer"><strong>The answer:</strong> The runner collects evidence from all three layers and returns a nonzero code if any suite fails or cannot start. One failure does not hide the others.</p></div>
+<div class="code-block"><pre><code>npm test</code></pre></div>
+<p>The root command runs <span class="path">scripts/test.mjs</span>, which runs:</p><ol class="flow"><li>Vitest frontend tests</li><li>pytest backend tests</li><li>Playwright Chrome tests</li></ol>
+<p>It runs each suite even if an earlier suite fails. The final exit code is nonzero if any suite fails or cannot start. An <span class="term">exit code</span> of 0 means success. Automation uses this code instead of reading colored output.</p>
+<p>The runner gives pytest a fresh temporary base directory and cache. This avoids a Windows access problem from an old directory owned by another account. It removes that directory afterward.</p>
+<div class="table-wrap"><table><thead><tr><th>Purpose</th><th>Command</th></tr></thead><tbody>
+<tr><td>All tests</td><td><code>npm test</code></td></tr>
+<tr><td>One frontend test file</td><td><code>npm run test:ui -- src/Sales.test.tsx</code></td></tr>
+<tr><td>One backend test file</td><td><code>npm run test:api -- backend/tests/test_sales.py</code></td></tr>
+<tr><td>One browser test file</td><td><code>npm run test:e2e -- e2e/startup.spec.ts</code></td></tr>
+<tr><td>Type check and production build</td><td><code>npm run build</code></td></tr>
+</tbody></table></div>
+<div class="callout remember"><strong>Build and tests are different:</strong> A build can succeed while behavior is wrong. Tests can pass while a production bundling step fails. Run the project's required checks for the kind of change you make.</div></section>
+
+<section class="lesson-section" id="failures"><span class="section-number">06</span><h2>How to read a failing test</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">The terminal fills with red output. Do you change the first assertion until it turns green, or is there a better investigation path?</p><p class="question-answer"><strong>The answer:</strong> Start with the behavior, setup, and expected-versus-received difference. Reproduce the smallest case, find the cause, then run all suites again.</p></div>
+<ol class="steps"><li><strong>Find the first clear failure.</strong> Later output can be a consequence.</li><li><strong>Read the test name and file path.</strong> They identify the behavior and location.</li><li><strong>Compare expected and received values.</strong> Check the assertion diff.</li><li><strong>Check setup errors.</strong> A missing dependency or occupied port is different from a wrong result.</li><li><strong>Reproduce the smallest scope.</strong> Run that one file or test while investigating.</li><li><strong>Run all suites before completion.</strong> A local fix can affect another layer.</li></ol>
+<p>Do not change an assertion just to make it pass. First decide whether the source or the test is wrong according to <span class="path">docs/intent.md</span> and <span class="path">docs/spec.md</span>. A familiar error message can have a different cause in a new context.</p>
+<p>A test that cannot start is not a passed test. Missing Chrome, Python, or Node dependencies must be fixed through the normal setup path.</p></section>
+
+<section class="lesson-section" id="quality"><span class="section-number">07</span><h2>Quality beyond automated tests</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">Every test is green, but focus is hard to see and a font needs the internet. Can automation alone declare the app ready?</p><p class="question-answer"><strong>The answer:</strong> No. Visual, keyboard, console, offline, and cross-platform checks cover qualities that the current assertions may not observe.</p></div>
+<p>Automated tests reduce risk. They do not prove that every user experience is correct. Accountable's sign-off also needs:</p><ul><li>Visual checks against the brand and approved mockup.</li><li>Keyboard and focus checks.</li><li>Browser console inspection for errors.</li><li>Offline startup and use after setup.</li><li>Representative save, load, reset, import, and export operations.</li><li>Checks on Windows, macOS, and Linux for the full release criterion.</li></ul>
+<p><span class="term">Regression</span> means previously working behavior breaks after a change. Regression tests preserve known behavior. A useful test has a clear arrange, act, and assert path and uses isolated data.</p></section>
+
+<section class="lesson-section" id="review"><span class="section-number">08</span><h2>Check your understanding</h2>
+<details class="answer"><summary>1. Why not use only Playwright tests?</summary><p>Browser tests are valuable but slower and broader. Unit and API tests locate small logic failures quickly. The three levels provide complementary evidence.</p></details>
+<details class="answer"><summary>2. Does jsdom prove that Chrome renders correctly?</summary><p>No. jsdom supplies DOM behavior in Node.js. Playwright with installed Chrome checks the real browser.</p></details>
+<details class="answer"><summary>3. Can <code>npm test</code> change <span class="path">data/accountable.db</span>?</summary><p>The suites use temporary test databases and backup paths. Browser tests also use temporary ports. The standard runner is designed not to touch your app data.</p></details>
+<details class="answer"><summary>4. What does a nonzero exit code mean?</summary><p>At least one suite failed or could not start. Read the output and do not report the run as passing.</p></details>
+</section>
+<div class="pager"><a href="lesson-07-architecture.html"><small>Previous</small>Lesson 7: Project architecture</a><a class="next" href="lesson-09-practice.html"><small>Next</small>Lesson 9: Guided practice →</a></div>
+<p class="page-footer">Next: run the app and connect the lessons to real behavior.</p>
+</main></div></body></html>

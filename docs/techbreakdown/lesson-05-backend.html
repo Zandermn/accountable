@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Learn FastAPI, Uvicorn, SQLAlchemy Core, SQLite, and Accountable backend services."><title>Lesson 5: Python backend | Accountable</title><link rel="stylesheet" href="assets/tutorial.css"><script src="assets/tutorial.js" defer></script></head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header"><a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Accountable<small>Technology breakdown</small></span></a><nav class="header-links" aria-label="Course links"><a href="index.html">Start here</a><a href="reference.html">Quick reference</a><a href="../TECH_STACK.md">Stack document</a></nav></header>
+<div class="layout"><aside class="sidebar"><div class="sidebar-inner"><nav aria-label="Lessons"><p class="nav-label">Learn in order</p><ol class="lesson-list"><li><a href="lesson-01-web-foundations.html">Web foundations</a></li><li><a href="lesson-02-programming.html">Programming basics</a></li><li><a href="lesson-03-tools.html">Tools and setup</a></li><li><a href="lesson-04-frontend.html">React frontend</a></li><li><a href="lesson-05-backend.html" aria-current="page">Python backend</a></li><li><a href="lesson-06-data.html">Data and APIs</a></li><li><a href="lesson-07-architecture.html">Project architecture</a></li><li><a href="lesson-08-testing.html">Testing and quality</a></li><li><a href="lesson-09-practice.html">Guided practice</a></li></ol></nav><p class="side-note">Course 05 of 09 · About 40 minutes</p></div></aside>
+<main id="main">
+<section class="hero compact"><p class="eyebrow">Lesson 05 · Backend</p><h1>Apply rules and manage data</h1><p class="lead">Follow a request through FastAPI, shared Python services, SQLAlchemy Core, and the SQLite database.</p><ul class="meta"><li>About 40 minutes</li><li>Prerequisite: Lessons 1–3</li><li>Main folder: backend/</li></ul><div class="question-card"><span class="question-label">The problem</span><p class="question-text">A browser can send any JSON. What stops it from creating a deal with no owner, an impossible probability, or only half of a related change?</p><p class="question-answer"><strong>Why it matters:</strong> The backend is the guard and the authority for saved data. Understanding its routes, services, and transactions shows you where the app's promises are enforced.</p></div></section>
+<nav class="toc lesson-section" aria-labelledby="contents"><h2 id="contents">In this lesson</h2><ol><li><a href="#fastapi">FastAPI and Uvicorn</a></li><li><a href="#routes">Routes and responses</a></li><li><a href="#services">Services and validation</a></li><li><a href="#sqlalchemy">SQLAlchemy Core and SQLite</a></li><li><a href="#transactions">Transactions and conflicts</a></li><li><a href="#workbooks">Workbooks and supporting packages</a></li><li><a href="#files">Backend file tour</a></li><li><a href="#review">Review</a></li></ol></nav>
+
+<section class="lesson-section" id="fastapi"><span class="section-number">01</span><h2>FastAPI and Uvicorn</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">A request arrives at port 8000 for <code>/api/dashboard</code>. How does that network message reach the right Python function?</p><p class="question-answer"><strong>The answer:</strong> Uvicorn accepts the HTTP connection, while FastAPI matches the request to a route and returns the function's response.</p></div>
+<p><span class="term">FastAPI</span> is a Python web framework. It connects URL paths and HTTP methods to Python functions. <span class="term">Uvicorn</span> is the server that accepts network connections and runs the FastAPI application.</p>
+<div class="code-block"><span class="code-label">Started by scripts/dev.mjs</span><pre><code>python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000</code></pre></div>
+<p><code>backend.main:app</code> means “find the variable <code>app</code> in <span class="path">backend/main.py</span>.” The host is loopback, so the server listens on this computer.</p>
+<p><span class="path">backend/main.py</span> defines an <span class="term">application factory</span> called <code>create_app()</code>. A factory builds and configures an application. Tests call it with a temporary database and no sample seed.</p>
+<div class="code-block"><span class="code-label">Simplified application setup</span><pre><code>def create_app(database=None, seed=True):
+    @asynccontextmanager
+    async def lifespan(app):
+        app.state.store = Store(database, seed)
+        yield
+        app.state.store.engine.dispose()
+
+    app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
+    app.include_router(record_routes)
+    app.include_router(sales_routes)
+    app.include_router(workbook_routes)
+    app.include_router(backup_routes)
+    return app</code></pre></div>
+<p>The <span class="term">lifespan</span> runs startup and shutdown work. Startup creates the <code>Store</code>, which opens or initializes the database. Shutdown disposes database connections. The <code>yield</code> separates those phases.</p>
+<div class="callout remember"><strong>No Swagger page:</strong> FastAPI can generate interactive API documentation. This app disables <code>/docs</code> and <code>/redoc</code>. Use the endpoint reference in Lesson 6 and the real app for exploration.</div></section>
+
+<section class="lesson-section" id="routes"><span class="section-number">02</span><h2>Routes, parameters, and JSON responses</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">The URL contains a record ID, the query contains search text, and the body contains fields. How does one Python function receive all three?</p><p class="question-answer"><strong>The answer:</strong> FastAPI maps path, query, header, and body values into function parameters. Returned dictionaries become JSON responses.</p></div>
+<p>A <span class="term">route</span> matches an HTTP method and path. FastAPI decorators such as <code>@router.get()</code> register routes. An <code>APIRouter</code> groups related routes before the main app includes them.</p>
+<div class="code-block"><span class="code-label">Simplified from backend/api/records.py</span><pre><code>router = APIRouter(prefix="/api")
+
+@router.get("/records/{kind}")
+def listing(request: Request, kind: str, search: str = ""):
+    with request.app.state.store.read() as conn:
+        return records.listing(conn, kind, search)
+
+@router.patch("/records/{kind}/{record_id}")
+def edit(request: Request, kind: str, record_id: str,
+         body: dict, x_dataset: int = Header()):
+    with request.app.state.store.write(x_dataset) as conn:
+        return records.save(conn, kind, body, path_id(record_id))</code></pre></div>
+<div class="table-wrap"><table><thead><tr><th>Function input</th><th>Where the value comes from</th></tr></thead><tbody>
+<tr><td><code>kind</code>, <code>record_id</code></td><td>Path parameters in the URL.</td></tr>
+<tr><td><code>search</code></td><td>A query parameter, with an empty-string default.</td></tr>
+<tr><td><code>body: dict</code></td><td>The JSON request body as a Python dictionary.</td></tr>
+<tr><td><code>x_dataset</code></td><td>The <code>X-Dataset</code> request header.</td></tr>
+<tr><td><code>request</code></td><td>The current HTTP request and app state.</td></tr>
+</tbody></table></div>
+<p>Returning a dictionary or list makes FastAPI serialize it as JSON. The shared <code>Problem</code> exception carries an error status and details. A handler in <span class="path">main.py</span> turns it into a <code>JSONResponse</code>.</p>
+<p>The API modules are thin. They read request values, choose a read or write transaction, and call a service. They do not duplicate all sales rules.</p></section>
+
+<section class="lesson-section" id="services"><span class="section-number">03</span><h2>Service modules and business rules</h2><div class="question-card"><span class="question-label">Design puzzle</span><p class="question-text">A deal can change stage from a form, a board move, or a workbook. What stops each path from applying a different probability rule?</p><p class="question-answer"><strong>The answer:</strong> All paths call the same backend service. Routes translate HTTP; services own the business rules and keep every entry point consistent.</p></div>
+<p>A <span class="term">service</span> contains application operations and business rules. Accountable uses the same services for browser writes, workbook imports, and local commands. This keeps behavior consistent.</p>
+<div class="grid"><article class="card green"><h3>API layer</h3><p>Understand HTTP. Route the request and return a response.</p><p class="mono small">backend/api/</p></article><article class="card gold"><h3>Service layer</h3><p>Validate fields, apply record rules, calculate totals, and coordinate changes.</p><p class="mono small">backend/services/</p></article><article class="card coral"><h3>Database layer</h3><p>Define tables, open connections, control transactions, and store rows.</p><p class="mono small">backend/db/</p></article></div>
+<p>Examples of business rules in <span class="path">backend/services/records.py</span>:</p><ul><li>Trim names and reject blank names.</li><li>Require a valid contact status and valid supplied email.</li><li>Require an active organization, main contact, or both for every deal.</li><li>Apply the destination stage's default probability when a stage changes.</li><li>Require an expected close date for an open deal.</li><li>Give an activity exactly one owner and normalize its timestamp to UTC.</li></ul>
+<p>The <code>save()</code> function handles create and edit. It rejects unknown fields, loads old values for an edit, validates the combined state, and uses either <code>insert()</code> or <code>update()</code>. A stage change also inserts an event for the timeline.</p>
+<p><span class="path">services/sales.py</span> owns board ordering and dashboard calculations. <span class="path">services/trash.py</span> owns deletion and recovery. <span class="path">services/backups.py</span> owns snapshots and replacement. <span class="path">services/workbooks.py</span> owns spreadsheet parsing and atomic imports.</p></section>
+
+<section class="lesson-section" id="sqlalchemy"><span class="section-number">04</span><h2>SQLAlchemy Core and SQLite</h2><div class="question-card"><span class="question-label">The mystery</span><p class="question-text">How does a contact survive after you close the browser and stop Python—and how can the app query it without handwritten SQL strings?</p><p class="question-answer"><strong>The answer:</strong> SQLite stores persistent relational rows in a file. SQLAlchemy Core defines tables and builds safe query expressions in Python.</p></div>
+<p><span class="term">SQLite</span> stores a relational database in one local file. <span class="term">SQLAlchemy Core</span> is a Python toolkit for defining tables and building SQL statements. Accountable uses Core table objects and expressions. It does not use ORM model classes, and project queries do not contain handwritten SQL strings.</p>
+<div class="code-block"><span class="code-label">Simplified table definition</span><pre><code>contacts = Table(
+    "contacts",
+    schema,
+    Column("id", String, primary_key=True),
+    Column("name", String, nullable=False),
+    Column("organization_id", String,
+           ForeignKey("organizations.id")),
+)</code></pre></div>
+<p>A <span class="term">primary key</span> uniquely identifies a row. A <span class="term">foreign key</span> references a row in another table. <code>nullable=False</code> rejects a missing value. A <span class="term">check constraint</span> enforces a rule such as nonnegative deal value or exactly one activity owner.</p>
+<div class="code-block"><span class="code-label">Build and execute a query</span><pre><code>statement = (
+    select(contacts)
+    .where(contacts.c.deleted_at.is_(None))
+)
+rows = conn.execute(statement).mappings().all()</code></pre></div>
+<p><code>contacts.c</code> gives access to columns. <code>select()</code> builds a query. The connection executes it. <code>.mappings()</code> makes rows available by column name.</p>
+<p>The <code>Store</code> enables SQLite foreign-key enforcement on every connection. It uses a 15-second connection timeout and explicit transactions. The default file is <span class="path">data/accountable.db</span>. Do not edit this binary file with a text editor.</p></section>
+
+<section class="lesson-section" id="transactions"><span class="section-number">05</span><h2>Transactions, revisions, and conflicts</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">A move updates two pipeline columns. What if the first update succeeds but the second fails? What if the board changed after you opened the Move dialog?</p><p class="question-answer"><strong>The answer:</strong> Transactions make related changes atomic. Revision and dataset checks reject stale actions before they overwrite a newer state.</p></div>
+<p>A <span class="term">transaction</span> groups database work into one atomic unit. <span class="term">Atomic</span> means all changes commit or none do. A <span class="term">commit</span> saves the unit. A <span class="term">rollback</span> undoes its uncommitted changes.</p>
+<div class="code-block"><span class="code-label">Simplified write context manager</span><pre><code>with store.write(dataset) as conn:
+    records.save(conn, "contacts", fields)
+    # More related changes can happen here.
+# Successful exit commits. An exception rolls back.</code></pre></div>
+<p>The real <code>Store.write()</code> first takes SQLite's write lock. It then checks optional revision values before yielding the connection. On success, it advances the dataset revision. This prevents two related writes from exposing a half-finished state.</p>
+<div class="table-wrap"><table><thead><tr><th>Version value</th><th>What it detects</th></tr></thead><tbody>
+<tr><td><code>revision</code></td><td>Data changed since a board read or deletion preview.</td></tr>
+<tr><td><code>dataset</code></td><td>A backup load or sample reset replaced the whole dataset.</td></tr>
+</tbody></table></div>
+<p>If a check fails, the API returns <code>409 Conflict</code>. The user must review the latest state instead of overwriting it with a stale action. The frontend polls <code>/api/version</code> every three seconds and on window focus.</p>
+<p>Workbook preview uses a <span class="term">nested transaction</span>, also called a savepoint. It runs all proposed changes and then rolls back that nested unit. Apply runs the same validation and commits the unit only when the token still matches the workbook and database revision.</p></section>
+
+<section class="lesson-section" id="workbooks"><span class="section-number">06</span><h2>Workbooks and supporting packages</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">An uploaded workbook is a ZIP of XML with formulas, types, and links. How can the app use it without trusting every cell or expanding it without limit?</p><p class="question-answer"><strong>The answer:</strong> openpyxl parses the format, multipart handles uploads, and size, formula, type, and value checks reject unsafe or invalid input.</p></div>
+<p>An <code>.xlsx</code> file is a ZIP archive containing XML and other workbook data. <span class="term">openpyxl</span> reads and writes these files. Accountable uses it to create templates and exports and to parse imports in read-only mode.</p>
+<p>The backend also has these supporting dependencies:</p><div class="table-wrap"><table><thead><tr><th>Package</th><th>Role</th></tr></thead><tbody>
+<tr><td><code>python-multipart</code></td><td>Lets FastAPI accept multipart form uploads for the workbook file and token.</td></tr>
+<tr><td><code>defusedxml</code></td><td>Supports safer XML processing for libraries that parse XML, including workbook processing.</td></tr>
+<tr><td>Python <code>zipfile</code></td><td>Checks the total expanded size before openpyxl parses the workbook.</td></tr>
+<tr><td>Python <code>Decimal</code></td><td>Converts dollar decimals to exact integer cents and rejects invalid precision.</td></tr>
+<tr><td>Python <code>hashlib</code></td><td>Creates workbook preview tokens and backup checksums.</td></tr>
+</tbody></table></div>
+<p>Uploads are limited to 16 MB. Expanded workbook content is limited to 64 MB. Formula cells are rejected. Errors identify the sheet, row, and field. Lesson 6 explains the complete preview and apply flow.</p></section>
+
+<section class="lesson-section" id="files"><span class="section-number">07</span><h2>Backend file tour</h2><div class="question-card"><span class="question-label">Problem to solve</span><p class="question-text">A workbook import applies the wrong stage rule. Which file should you inspect first, and which files should stay unchanged?</p><p class="question-answer"><strong>The answer:</strong> The file tour maps symptoms to owners. Workbook parsing and shared record services are the likely path; unrelated UI and generated data are not.</p></div>
+<div class="table-wrap"><table><thead><tr><th>Path</th><th>Responsibility</th></tr></thead><tbody>
+<tr><td><span class="path">backend/main.py</span></td><td>App factory, lifespan, routers, error handler, and version endpoint.</td></tr>
+<tr><td><span class="path">backend/db/__init__.py</span></td><td>Schema, constants, <code>Problem</code>, and <code>Store</code> transactions.</td></tr>
+<tr><td><span class="path">backend/api/</span></td><td>HTTP routes for records, sales, workbooks, and backups.</td></tr>
+<tr><td><span class="path">backend/services/records.py</span></td><td>Record validation, CRUD, listing, links, and timelines.</td></tr>
+<tr><td><span class="path">backend/services/sales.py</span></td><td>Pipeline movement, ordering, totals, and dashboard metrics.</td></tr>
+<tr><td><span class="path">backend/services/trash.py</span></td><td>Deletion previews, soft deletion, and restoration.</td></tr>
+<tr><td><span class="path">backend/services/workbooks.py</span></td><td>Excel template, export, import preview, and apply.</td></tr>
+<tr><td><span class="path">backend/services/backups.py</span></td><td>JSON snapshots, validation, atomic publish, load, and backup deletion.</td></tr>
+<tr><td><span class="path">backend/seed.py</span></td><td>Realistic sample records for a new database or confirmed reset.</td></tr>
+<tr><td><span class="path">backend/data_commands.py</span></td><td>Command-line save, load, and seed entry point.</td></tr>
+<tr><td><span class="path">backend/tests/</span></td><td>Backend tests and isolated API fixture.</td></tr>
+</tbody></table></div></section>
+
+<section class="lesson-section" id="review"><span class="section-number">08</span><h2>Check your understanding</h2>
+<details class="answer"><summary>1. What is the difference between FastAPI and Uvicorn?</summary><p>FastAPI defines application routes and request handling. Uvicorn runs the server that receives HTTP traffic and passes it to that application.</p></details>
+<details class="answer"><summary>2. Why keep business rules out of route functions?</summary><p>Shared services let browser routes, workbook imports, and local commands apply exactly the same rules. Tests can also exercise services directly.</p></details>
+<details class="answer"><summary>3. Is SQLAlchemy Core an ORM here?</summary><p>No. The project uses table definitions and SQL expression objects, not ORM entity classes. It also avoids raw SQL strings.</p></details>
+<details class="answer"><summary>4. Why does a failed workbook preview not add records?</summary><p>The preview runs inside a nested transaction and rolls it back. Apply uses a matching token and commits only after all rows pass validation.</p></details>
+</section>
+<div class="pager"><a href="lesson-04-frontend.html"><small>Previous</small>Lesson 4: React frontend</a><a class="next" href="lesson-06-data.html"><small>Next</small>Lesson 6: Data and APIs →</a></div>
+<p class="page-footer">Next: understand the records, relationships, and complete data flows.</p>
+</main></div></body></html>

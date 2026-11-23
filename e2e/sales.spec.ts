@@ -22,12 +22,12 @@ test('moves cards by drag and keyboard, preserves a draft, focus and order', asy
   ).toBeFocused();
   const lane = (name: string) => p.getByRole('region', { name, exact: true });
   const card = (name: string) => p.locator('article.deal-card').filter({ hasText: name });
-  const before = await p.locator('.stats').innerText();
+  const before = await p.locator('.board-totals').innerText();
   await card('Pilot program').dragTo(lane('New'));
   await expect(lane('Lost').locator('.deal-card')).toHaveCount(0);
   await card('Workshop expansion').dragTo(lane('Lost'));
   await expect(lane('Lost')).toContainText('Workshop expansion');
-  await expect(p.locator('.stats')).not.toHaveText(before);
+  await expect(p.locator('.board-totals')).not.toHaveText(before);
   await card('Annual supply agreement').dragTo(card('Regional launch'), {
     targetPosition: { x: 10, y: 90 },
   });

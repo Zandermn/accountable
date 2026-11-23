@@ -65,7 +65,10 @@ export function Workspace() {
           ) : section === 'data' ? (
             <Data />
           ) : (
-            <Dashboard />
+            <>
+              <section id="dashboard" aria-label="Dashboard"><Dashboard /></section>
+              <section id="pipeline" aria-label="Pipeline"><SalesWorkspace id="" onBoard embedded /></section>
+            </>
           )}
         </div>
         {action && <RecordDialog action={action} close={() => setAction(undefined)} />}

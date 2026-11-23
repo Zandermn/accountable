@@ -170,20 +170,14 @@ time,
 .menu span {
   color: var(--muted);
 }
-.menu i {
-  border: 1.5px solid currentColor;
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
-  display: inline-block;
+.menu[aria-label='Utilities'] a {
+  color: var(--muted);
 }
-.menu i.round {
-  border-radius: 50%;
+.menu svg {
+  flex: none;
 }
-.menu i.board {
-  box-shadow:
-    inset 3px 0 0 var(--white),
-    inset 4.5px 0 0 currentColor;
+.menu a[aria-current] svg {
+  color: #07634e;
 }
 
 main {
@@ -223,6 +217,12 @@ main {
 }
 .button:hover {
   filter: brightness(0.96);
+}
+.button.add {
+  gap: 3px;
+}
+.button.add::before {
+  content: '+' / '';
 }
 .subtle {
   background: var(--page);
@@ -402,8 +402,8 @@ main {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.task-copy button,
-.activity-copy button,
+.task-copy a,
+.activity-copy a,
 .activity-copy p,
 .task-row time,
 .activity-row time {
@@ -587,6 +587,7 @@ main {
 }
 .deal-value {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 4px;
   font-size: 10px;
@@ -598,6 +599,7 @@ main {
 .deal-meta {
   margin-top: 5px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 5px;
   color: var(--muted);
@@ -795,14 +797,14 @@ dialog select {
     grid-template-areas: 'revenue wins' 'tasks activity' 'funnel funnel';
   }
 }
-.workspace-layout:has(#deal-dock:not([hidden])) {
+.sales-workspace.docked {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(315px, 340px);
   align-items: start;
   gap: 12px;
 }
 
-.workspace-layout:has(#deal-dock:not([hidden])) .board {
+.docked .board {
   grid-template-columns: repeat(6, minmax(119px, 1fr));
   gap: 7px;
 }
@@ -834,17 +836,8 @@ dialog select {
   font-weight: 700;
 }
 
-dialog.deal-window {
-  width: min(550px, calc(100vw - 36px));
-  padding: 0;
-}
-dialog.deal-window-docked {
-  position: sticky;
-  top: 16px;
-  width: 100%;
-  max-width: none;
-  max-height: none;
-  margin: 0;
+.docked .deal-dock {
+  border-radius: 15px;
   box-shadow: 0 5px 18px #073b4c14;
 }
 .deal-window-content {
@@ -991,23 +984,15 @@ dialog.deal-window-docked {
 }
 
 @media (max-width: 1140px) {
-  .workspace-layout:has(#deal-dock:not([hidden])) {
+  .sales-workspace.docked {
     grid-template-columns: minmax(0, 1fr);
   }
 }
-.sales-workspace.docked {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
-  gap: 12px;
-  align-items: start;
-}
-.docked .board {
-  grid-template-columns: repeat(6, minmax(128px, 1fr));
-  gap: 7px;
-}
 .sales-workspace:not(.docked) .deal-dock {
-  max-width: 660px;
+  max-width: 550px;
+  margin-inline: auto;
 }
+.edit-deal { justify-self: start; }
 .deal-dock {
   position: sticky;
   top: 16px;
@@ -1032,14 +1017,26 @@ dialog.deal-window-docked {
   margin: 0;
 }
 .history {
-  margin: 10px 0;
-  padding: 10px;
-  background: white;
-  border-radius: 8px;
+  margin-top: 6px;
+  font-size: 12px;
   overflow-wrap: anywhere;
+}
+.history-entry {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
 }
 .history time {
   font-size: 11px;
+  white-space: nowrap;
+}
+.related .panel-head h2 {
+  font-size: 13px;
+}
+.related .panel-head button {
+  padding: 2px 4px;
+  font-size: 12px;
 }
 .row-actions {
   display: flex;
@@ -1052,6 +1049,18 @@ td > button {
   border: 0;
   border-radius: 6px;
   padding: 4px 8px;
+}
+.directory-panel .row-actions button,
+.history .row-actions button {
+  background: transparent;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.history .row-actions {
+  margin-top: 4px;
 }
 dialog h2 {
   margin-bottom: 12px;
@@ -1069,9 +1078,6 @@ textarea {
 button:disabled {
   cursor: default;
   opacity: 0.6;
-}
-.check::after {
-  content: none;
 }
 .deal-title {
   border: 0;

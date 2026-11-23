@@ -18,6 +18,12 @@ test('offline salesperson walkthrough at desktop and laptop sizes', async ({
   });
   await p.goto('/');
   await expect(p.locator('.tasks')).toContainText('Confirm delivery dates with Maya');
+  const embeddedBoard = p.getByRole('region', { name: 'Pipeline', exact: true });
+  await embeddedBoard.getByRole('button', { name: 'Workshop expansion', exact: true }).click();
+  await expect(embeddedBoard.locator('.deal-note')).toBeVisible();
+  await expect(p.getByRole('heading', { name: 'Dashboard', exact: true })).toBeAttached();
+  await embeddedBoard.getByRole('button', { name: 'Close deal details' }).click();
+  await expect(embeddedBoard.getByRole('button', { name: 'Workshop expansion', exact: true })).toBeFocused();
   await p.locator('.tasks').getByRole('link', { name: 'Maya Chen' }).click();
   await expect(p.locator('.history').first()).toContainText('Confirm delivery dates');
   await p.getByRole('navigation').getByText('Deals', { exact: true }).click();
