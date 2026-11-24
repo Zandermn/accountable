@@ -4,21 +4,25 @@ from conftest import add, deal, remove
 
 def test_linked_search_status_and_typed_sort(api):
     org = add(api, "organizations", name="Harbor")
-    first = add(api, "contacts", name="Morgan", status="Lead", organization_id=org["id"])
+    first = add(
+        api, "contacts", name="Morgan", status="Lead", organization_id=org["id"]
+    )
     add(api, "contacts", name="Bela", status="Customer", organization_id=org["id"])
-    assert [r["id"] for r in api.get("/api/records/contacts?search=HARb&status=Lead").json()] == [
-        first["id"]
-    ]
+    assert [
+        r["id"] for r in api.get("/api/records/contacts?search=HARb&status=Lead").json()
+    ] == [first["id"]]
     rows = [deal(api, value_cents=v, organization_id=org["id"]) for v in (200, 30, 30)]
     result = api.get("/api/records/deals?sort=value_cents&search=Harbor").json()
-    assert [r["id"] for r in result] == sorted([rows[1]["id"], rows[2]["id"]]) + [rows[0]["id"]]
+    assert [r["id"] for r in result] == sorted([rows[1]["id"], rows[2]["id"]]) + [
+        rows[0]["id"]
+    ]
     empty = add(api, "organizations", name="No links")
     assert remove(api, "contacts", first).is_success
     assert remove(api, "deals", rows[0]).is_success
     organizations = api.get("/api/records/organizations?sort=deals_count").json()
-    assert [(r["id"], r["contacts_count"], r["deals_count"]) for r in organizations] == [
-        (empty["id"], 0, 0), (org["id"], 1, 2)
-    ]
+    assert [
+        (r["id"], r["contacts_count"], r["deals_count"]) for r in organizations
+    ] == [(empty["id"], 0, 0), (org["id"], 1, 2)]
 
 
 def test_three_link_combinations_and_unavailable_links(api):
@@ -32,14 +36,20 @@ def test_three_link_combinations_and_unavailable_links(api):
         deal(api, **links)
     for links in ({}, {"contact_id": "missing"}):
         assert api.post(
-            "/api/records/deals", json={"name": "Bad", "value_cents": 0, "stage": "Won", **links}
+            "/api/records/deals",
+            json={"name": "Bad", "value_cents": 0, "stage": "Won", **links},
         ).status_code in (409, 422)
     other = add(api, "organizations", name="Retired")
     assert remove(api, "organizations", other).is_success
     assert (
         api.post(
             "/api/records/deals",
-            json={"name": "Bad", "value_cents": 0, "stage": "Won", "organization_id": other["id"]},
+            json={
+                "name": "Bad",
+                "value_cents": 0,
+                "stage": "Won",
+                "organization_id": other["id"],
+            },
         ).status_code
         == 409
     )
@@ -51,11 +61,18 @@ def test_stale_preview_returns_all_current_blockers_without_detaching(api, stage
     contact = add(api, "contacts", name="Lin", status="Lead", organization_id=org["id"])
     url = "/api/records/organizations/" + org["id"]
     preview = api.get(url + "/delete-preview").json()
-    blockers = [deal(api, str(i), stage=stage, organization_id=org["id"]) for i in range(2)]
+    blockers = [
+        deal(api, str(i), stage=stage, organization_id=org["id"]) for i in range(2)
+    ]
     response = api.request("DELETE", url, json={"revision": preview["revision"]})
     assert response.status_code == 409
-    assert {r["id"] for r in response.json()["preview"]["blockers"]} == {r["id"] for r in blockers}
-    assert api.get("/api/records/contacts/" + contact["id"]).json()["organization_id"] == org["id"]
+    assert {r["id"] for r in response.json()["preview"]["blockers"]} == {
+        r["id"] for r in blockers
+    }
+    assert (
+        api.get("/api/records/contacts/" + contact["id"]).json()["organization_id"]
+        == org["id"]
+    )
 
 
 def test_unchanged_closed_deal_rejects_a_blank_actual_date(api):
@@ -70,19 +87,40 @@ def test_unchanged_closed_deal_rejects_a_blank_actual_date(api):
     response = api.patch("/api/records/deals/" + sale["id"], json={"actual_date": None})
     assert response.status_code == 422
     assert response.json()["field"] == "actual_date"
-    assert api.get("/api/records/deals/" + sale["id"]).json()["actual_date"] == "2026-09-18"
+    assert (
+        api.get("/api/records/deals/" + sale["id"]).json()["actual_date"]
+        == "2026-09-18"
+    )
 
 
 def test_deal_sorts_use_stage_order_calendar_dates_and_id_ties(api):
     org = add(api, "organizations", name="Sort buyer")
-    first = deal(api, "Z", stage="Proposal", expected_date="2027-03-01", organization_id=org["id"])
-    second = deal(
-        api, "A", stage="Negotiation", expected_date="2026-12-01", organization_id=org["id"]
+    first = deal(
+        api,
+        "Z",
+        stage="Proposal",
+        expected_date="2027-03-01",
+        organization_id=org["id"],
     )
-    third = deal(api, "M", stage="Proposal", expected_date="2027-03-01", organization_id=org["id"])
+    second = deal(
+        api,
+        "A",
+        stage="Negotiation",
+        expected_date="2026-12-01",
+        organization_id=org["id"],
+    )
+    third = deal(
+        api,
+        "M",
+        stage="Proposal",
+        expected_date="2027-03-01",
+        organization_id=org["id"],
+    )
     tied = sorted([first["id"], third["id"]])
     for query, wanted in [
         ("sort=stage", tied + [second["id"]]),
         ("sort=close_date", [second["id"]] + tied),
     ]:
-        assert [r["id"] for r in api.get("/api/records/deals?" + query).json()] == wanted
+        assert [
+            r["id"] for r in api.get("/api/records/deals?" + query).json()
+        ] == wanted

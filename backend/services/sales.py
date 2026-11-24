@@ -1,5 +1,6 @@
 from collections import Counter
 from datetime import date
+from typing import TypedDict
 
 from sqlalchemy import select, update
 
@@ -7,11 +8,18 @@ from backend.db import OPEN, STAGES, Problem, activities, contacts, deals, event
 from backend.services.records import get, listing, save
 
 
+class MonthlySales(TypedDict):
+    month: str
+    wins: int
+    revenue: int
+
+
 def totals(cards):
     return {
         "count": len(cards),
         "value": sum(c["value_cents"] for c in cards),
-        "expected": (sum(c["value_cents"] * c["probability"] for c in cards) + 50) // 100,
+        "expected": (sum(c["value_cents"] * c["probability"] for c in cards) + 50)
+        // 100,
     }
 
 
@@ -52,7 +60,9 @@ def move(conn, body):
             conn.scalars(
                 select(deals.c.id)
                 .where(
-                    deals.c.stage == lane, deals.c.deleted_at.is_(None), deals.c.id != deal["id"]
+                    deals.c.stage == lane,
+                    deals.c.deleted_at.is_(None),
+                    deals.c.id != deal["id"],
                 )
                 .order_by(deals.c.position, deals.c.id)
             )
@@ -63,7 +73,9 @@ def move(conn, body):
                 raise Problem("The selected position changed. Choose it again.", 409)
             ids.insert(ids.index(before) if before else len(ids), deal["id"])
         for position, record_id in enumerate(ids):
-            conn.execute(update(deals).where(deals.c.id == record_id).values(position=position))
+            conn.execute(
+                update(deals).where(deals.c.id == record_id).values(position=position)
+            )
     result = board(conn)
     result["revision"] += 1
     return result
@@ -72,7 +84,7 @@ def move(conn, body):
 def dashboard(conn, today=None):
     today = today or date.today()
     cards = listing(conn, "deals", today=today)
-    months = {}
+    months: dict[str, MonthlySales] = {}
     for offset in range(-5, 1):
         y, m = divmod(today.year * 12 + today.month - 1 + offset, 12)
         month = f"{y:04d}-{m + 1:02d}"
@@ -82,7 +94,9 @@ def dashboard(conn, today=None):
     owners.update(
         dict(
             conn.execute(
-                select(contacts.c.id, contacts.c.name).where(contacts.c.deleted_at.is_(None))
+                select(contacts.c.id, contacts.c.name).where(
+                    contacts.c.deleted_at.is_(None)
+                )
             ).all()
         )
     )
@@ -137,6 +151,8 @@ def dashboard(conn, today=None):
         "months": list(months.values()),
         "funnel": funnel,
         "totals": totals([r for r in cards if r["stage"] in OPEN]),
-        "recent": sorted(history, key=lambda r: (r["occurred_at"], r["id"]), reverse=True)[:10],
+        "recent": sorted(
+            history, key=lambda r: (r["occurred_at"], r["id"]), reverse=True
+        )[:10],
         "followups": sorted(followups, key=lambda r: (r["follow_up"], r["id"])),
     }

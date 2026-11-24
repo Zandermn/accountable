@@ -103,21 +103,23 @@ export function RecordDialog({ action, close }: { action: Action; close: () => v
     ['contacts', 'deals'].includes(kind) ? '/records/organizations' : null,
   );
   const contacts = useRead<Row[]>(kind === 'deals' ? '/records/contacts' : null);
+  const deletePreviewPath =
+    action.type === 'delete' && row ? recordPath(kind, row.id) + '/delete-preview' : null;
   useEffect(() => {
+    if (!deletePreviewPath) return;
     let active = true;
-    if (action.type === 'delete')
-      api<Impact>(recordPath(kind, row!.id) + '/delete-preview').then(
-        (value) => {
-          if (active) setImpact(value);
-        },
-        (err) => {
-          if (active) setError(err);
-        },
-      );
+    api<Impact>(deletePreviewPath).then(
+      (value) => {
+        if (active) setImpact(value);
+      },
+      (err) => {
+        if (active) setError(err);
+      },
+    );
     return () => {
       active = false;
     };
-  }, [action.type, kind, row?.id]);
+  }, [deletePreviewPath]);
   const impact = updatedImpact;
   const stale = dataset !== action.dataset;
   const title =
@@ -182,8 +184,7 @@ export function RecordDialog({ action, close }: { action: Action; close: () => v
         if (kind === 'activities') {
           if (!values.occurred_at)
             throw new Failure('Enter the time of occurrence.', 'occurred_at');
-          if (row && values.occurred_at === localTime(row.occurred_at))
-            delete body.occurred_at;
+          if (row && values.occurred_at === localTime(row.occurred_at)) delete body.occurred_at;
           else body.occurred_at = new Date(values.occurred_at).toISOString();
           if (!row) Object.assign(body, initial);
         }

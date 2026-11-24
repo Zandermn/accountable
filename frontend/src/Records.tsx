@@ -83,9 +83,11 @@ export function Directory({ kind }: { kind: string }) {
               ))}
             </select>
           )}
-          {result?.value && <span className="directory-count muted" aria-live="polite">
-            {result.value.length} {result.value.length === 1 ? 'record' : 'records'}
-          </span>}
+          {result?.value && (
+            <span className="directory-count muted" aria-live="polite">
+              {result.value.length} {result.value.length === 1 ? 'record' : 'records'}
+            </span>
+          )}
         </div>
         {!result?.value ? (
           <ReadState error={result?.error} />
@@ -162,9 +164,15 @@ export function History({ kind, row }: { kind: string; row: Row }) {
       {row.timeline.map((a) => (
         <article className="history" key={a.id}>
           <div className="history-entry">
-            <strong>{a.type !== 'Stage' && a.type + ' · '}<span>{a.description}</span></strong>
+            <strong>
+              {a.type !== 'Stage' && a.type + ' · '}
+              <span>{a.description}</span>
+            </strong>
             <time dateTime={a.occurred_at} title={new Date(a.occurred_at).toLocaleString()}>
-              {new Date(a.occurred_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {new Date(a.occurred_at).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+              })}
             </time>
           </div>
           {a.follow_up && (

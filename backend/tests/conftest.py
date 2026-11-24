@@ -7,7 +7,9 @@ from backend.main import create_app
 @pytest.fixture
 def api(tmp_path, monkeypatch):
     monkeypatch.setenv("ACCOUNTABLE_BACKUPS", str(tmp_path / "backups"))
-    with TestClient(create_app(tmp_path / "test.db", seed=False), base_url="http://127.0.0.1") as client:
+    with TestClient(
+        create_app(tmp_path / "test.db", seed=False), base_url="http://127.0.0.1"
+    ) as client:
         client.headers.update({"X-Dataset": "1"})
         yield client
 
@@ -23,7 +25,12 @@ def deal(api, name="Renewal", **fields):
         api,
         "deals",
         **(
-            {"name": name, "stage": "New", "expected_date": "2027-01-15", "value_cents": 10000}
+            {
+                "name": name,
+                "stage": "New",
+                "expected_date": "2027-01-15",
+                "value_cents": 10000,
+            }
             | fields
         ),
     )

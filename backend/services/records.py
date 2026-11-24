@@ -51,7 +51,9 @@ def table_for(kind):
 
 
 def find(conn, table, record_id):
-    result = conn.execute(select(table).where(table.c.id == record_id)).mappings().first()
+    result = (
+        conn.execute(select(table).where(table.c.id == record_id)).mappings().first()
+    )
     return dict(result) if result else None
 
 
@@ -112,9 +114,15 @@ def deal_fields(conn, fields, old, today):
     integer(fields, "value_cents", 9007199254740991)
     integer(fields, "probability", 100)
     if changed:
-        if (stage not in OPEN or old["stage"] not in OPEN) and not fields.get("expected_date"):
+        if (stage not in OPEN or old["stage"] not in OPEN) and not fields.get(
+            "expected_date"
+        ):
             fields["expected_date"] = old["expected_date"]
-        if stage not in OPEN and old["stage"] not in OPEN and not fields.get("actual_date"):
+        if (
+            stage not in OPEN
+            and old["stage"] not in OPEN
+            and not fields.get("actual_date")
+        ):
             fields["actual_date"] = old["actual_date"]
     calendar(fields, "expected_date")
     if stage in OPEN:
@@ -128,7 +136,9 @@ def deal_fields(conn, fields, old, today):
         if not fields.get("actual_date"):
             raise Problem("Enter the actual close date.", field="actual_date")
     if not fields.get("organization_id") and not fields.get("contact_id"):
-        raise Problem("Choose an organization or main contact.", field="organization_id")
+        raise Problem(
+            "Choose an organization or main contact.", field="organization_id"
+        )
     require_link(conn, contacts, fields, "contact_id")
     if not old or changed:
         fields["position"] = append_position(conn, stage)
@@ -162,7 +172,9 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
             raise Problem("Enter an HTTP or HTTPS website.", field="website")
     if kind == "contacts":
         choice(fields, "status", ("Lead", "Qualified", "Customer"))
-        if fields.get("email") and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", fields["email"]):
+        if fields.get("email") and not re.fullmatch(
+            r"[^@\s]+@[^@\s]+\.[^@\s]+", fields["email"]
+        ):
             raise Problem("Enter a valid email address.", field="email")
     if kind == "deals":
         deal_fields(conn, fields, old, today or date.today())
@@ -180,7 +192,9 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
                 raise ValueError
             fields["occurred_at"] = stamp.astimezone(UTC).isoformat()
         except (KeyError, ValueError, TypeError):
-            raise Problem("Enter the time of occurrence with its time zone.", field="occurred_at")
+            raise Problem(
+                "Enter the time of occurrence with its time zone.", field="occurred_at"
+            )
         calendar(fields, "follow_up")
         if "done" in fields and type(fields["done"]) is not bool:
             raise Problem("Select a completion state.", field="done")
@@ -191,7 +205,9 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
             key = detached.c.contact_id if kind == "contacts" else detached.c.deal_id
             conn.execute(delete(detached).where(key == record_id))
         conn.execute(
-            update(table).where(table.c.id == record_id).values(**fields, updated_at=now())
+            update(table)
+            .where(table.c.id == record_id)
+            .values(**fields, updated_at=now())
         )
         if kind == "deals" and old["stage"] != fields["stage"]:
             conn.execute(
@@ -207,7 +223,9 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
     return get(conn, kind, record_id)
 
 
-def listing(conn, kind, search="", sort="name", direction="asc", status=None, today=None):
+def listing(
+    conn, kind, search="", sort="name", direction="asc", status=None, today=None
+):
     table = table_for(kind)
     stmt = select(table).where(table.c.deleted_at.is_(None))
     if kind == "organizations":
@@ -215,7 +233,10 @@ def listing(conn, kind, search="", sort="name", direction="asc", status=None, to
             count = (
                 select(func.count())
                 .select_from(linked)
-                .where(linked.c.organization_id == organizations.c.id, linked.c.deleted_at.is_(None))
+                .where(
+                    linked.c.organization_id == organizations.c.id,
+                    linked.c.deleted_at.is_(None),
+                )
                 .scalar_subquery()
             )
             stmt = stmt.add_columns(count.label(linked.name + "_count"))
@@ -224,9 +245,9 @@ def listing(conn, kind, search="", sort="name", direction="asc", status=None, to
             organizations, organizations.c.id == table.c.organization_id
         ).add_columns(organizations.c.name.label("organization"))
     if kind == "deals":
-        stmt = stmt.outerjoin(contacts, contacts.c.id == deals.c.contact_id).add_columns(
-            contacts.c.name.label("contact")
-        )
+        stmt = stmt.outerjoin(
+            contacts, contacts.c.id == deals.c.contact_id
+        ).add_columns(contacts.c.name.label("contact"))
     if kind == "contacts" and status:
         stmt = stmt.where(contacts.c.status == status)
     rows = [dict(r) for r in conn.execute(stmt).mappings()]
@@ -234,9 +255,17 @@ def listing(conn, kind, search="", sort="name", direction="asc", status=None, to
         if kind == "deals":
             opened = row["stage"] in OPEN
             row["close_date"] = row["expected_date"] if opened else row["actual_date"]
-            row["late"] = opened and row["expected_date"] < (today or date.today()).isoformat()
+            row["late"] = (
+                opened and row["expected_date"] < (today or date.today()).isoformat()
+            )
     visible = {
-        "organizations": ("name", "industry", "website", "contacts_count", "deals_count"),
+        "organizations": (
+            "name",
+            "industry",
+            "website",
+            "contacts_count",
+            "deals_count",
+        ),
         "contacts": ("name", "status", "organization", "email", "phone"),
         "deals": (
             "name",
@@ -277,7 +306,10 @@ def listing(conn, kind, search="", sort="name", direction="asc", status=None, to
         return value.casefold() if isinstance(value, str) else value
 
     rows.sort(key=lambda r: r["id"])
-    rows.sort(key=lambda r: (r.get(sort) is not None, sort_key(r)), reverse=direction == "desc")
+    rows.sort(
+        key=lambda r: (r.get(sort) is not None, sort_key(r)),
+        reverse=direction == "desc",
+    )
     return rows
 
 
@@ -286,13 +318,21 @@ def timeline(conn, kind, record_id):
     rows = [
         dict(r)
         for r in conn.execute(
-            select(activities).where(key == record_id, activities.c.deleted_at.is_(None))
+            select(activities).where(
+                key == record_id, activities.c.deleted_at.is_(None)
+            )
         ).mappings()
     ]
     if kind == "deals":
-        for r in conn.execute(select(events).where(events.c.deal_id == record_id)).mappings():
+        for r in conn.execute(
+            select(events).where(events.c.deal_id == record_id)
+        ).mappings():
             rows.append(
-                dict(r, type="Stage", description=f"Moved from {r['previous']} to {r['stage']}")
+                dict(
+                    r,
+                    type="Stage",
+                    description=f"Moved from {r['previous']} to {r['stage']}",
+                )
             )
     return sorted(rows, key=lambda r: (r["occurred_at"], r["id"]), reverse=True)
 
@@ -307,10 +347,16 @@ def detail(conn, kind, record_id):
     ):
         if row.get(key):
             other = find(conn, target, row[key])
-            related.append({"kind": target.name, "id": other["id"], "name": other["name"]})
+            related.append(
+                {"kind": target.name, "id": other["id"], "name": other["name"]}
+            )
     if kind in ("organizations", "contacts"):
         for table in [contacts, deals] if kind == "organizations" else [deals]:
-            key = table.c.organization_id if kind == "organizations" else table.c.contact_id
+            key = (
+                table.c.organization_id
+                if kind == "organizations"
+                else table.c.contact_id
+            )
             related.extend(
                 dict(r, kind=table.name)
                 for r in conn.execute(
@@ -322,5 +368,7 @@ def detail(conn, kind, record_id):
     return dict(
         row,
         related=related,
-        timeline=timeline(conn, kind, record_id) if kind in ("deals", "contacts") else [],
+        timeline=timeline(conn, kind, record_id)
+        if kind in ("deals", "contacts")
+        else [],
     )

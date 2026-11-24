@@ -44,7 +44,7 @@ Each of the seven sidebar links has a distinct Lucide icon and a visible text la
 
 ## One-time setup
 
-Install Node.js 26, uv, and Google Chrome. Node.js 24 or later is supported. Open a terminal in this repository. With internet access, run these commands.
+Install Node.js 26, uv, and Google Chrome. Node.js 24 or later is supported. Install Gitleaks 8.30 or later and make it available on `PATH` to run the repository checks. Open a terminal in this repository. With internet access, run these commands.
 
 ```sh
 uv python install 3.12
@@ -60,6 +60,9 @@ The first launch fills `data/accountable.db` with sample records. Each later lau
 
 | Command | Result |
 | --- | --- |
+| `npm run check` | Check frontend and backend formatting, lint rules, and types. Scan the working tree for secrets with Gitleaks, then run all three test suites. |
+| `npm run check:quick` | Run the same checks and unit tests. Skip the Chrome tests. |
+| `npm run format` | Apply Prettier formatting to the frontend and Ruff formatting to the backend. |
 | `npm test` | Run Vitest, pytest, and Playwright in order. Chrome starts the app on temporary ports. Each browser case gets a separate database and backup directory. |
 | `npm run test:ui`, `npm run test:api`, `npm run test:e2e` | Run one test suite. |
 | `npm run build` | Check TypeScript and build the frontend in `frontend/dist/`. |
@@ -68,6 +71,10 @@ The first launch fills `data/accountable.db` with sample records. Each later lau
 | `npm run seed` | Type `yes` to save a full backup and replace the current data with fresh samples. Press Enter to cancel. |
 
 Use **Data** to download the workbook template, preview an import, export active sales records, or delete a backup. Backup deletion requires two confirmations. Use **Trash** to restore an individual record.
+
+Gitleaks uses its default rules and scans the current working tree, including untracked source files. The scan allows the Git-ignored root `.env` file and excludes generated files in dependency, cache, build, local data, and test output directories.
+
+`tsc` checks frontend types and `ty` checks backend Python types. Vitest and pytest each require at least 80% line coverage of their application code. Frontend tests cover Dashboard follow-ups, record details, Trash, workbook import, deal notes, and reopening closed deals.
 
 ## Deal Workspace visual check on Windows (2026-11-23)
 

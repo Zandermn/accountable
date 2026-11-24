@@ -82,7 +82,9 @@ function NotePanel({ row }: { row: Row }) {
           Add note
         </button>
       </div>
-      {!row.timeline.some((a) => a.type === 'Note') && !draft && <p className="muted">No notes yet</p>}
+      {!row.timeline.some((a) => a.type === 'Note') && !draft && (
+        <p className="muted">No notes yet</p>
+      )}
       {row.timeline
         .filter((a) => a.type === 'Note')
         .map((a) => (
@@ -147,7 +149,9 @@ function DealPanel({
     <section className="panel deal-window-content" aria-label="Deal details">
       <header className="deal-window-header">
         <div>
-          <span className="deal-window-stage"><span className="record-status">{row.stage}</span></span>
+          <span className="deal-window-stage">
+            <span className="record-status">{row.stage}</span>
+          </span>
           <h2>{row.name}</h2>
         </div>
         <button className="icon-button" aria-label="Close deal details" onClick={close}>
@@ -166,7 +170,9 @@ function DealPanel({
         ))}
         <div>
           <dt>{row.actual_date ? 'Actual close' : 'Expected close'}</dt>
-          <dd className="numbers"><ShortDate value={row.actual_date || row.expected_date} /></dd>
+          <dd className="numbers">
+            <ShortDate value={row.actual_date || row.expected_date} />
+          </dd>
         </div>
       </dl>
       <dl className="deal-links">
@@ -186,7 +192,10 @@ function DealPanel({
       )}
       <NotePanel row={row} />
       <History kind="deals" row={row} />
-      <button className="text-link edit-deal" onClick={() => open({ type: 'edit', kind: 'deals', row })}>
+      <button
+        className="text-link edit-deal"
+        onClick={() => open({ type: 'edit', kind: 'deals', row })}
+      >
         Edit deal
       </button>
     </section>
@@ -199,7 +208,15 @@ type Placement = {
   revision: number;
   expected_date?: string;
 };
-export function SalesWorkspace({ id, onBoard, embedded = false }: { id: string; onBoard: boolean; embedded?: boolean }) {
+export function SalesWorkspace({
+  id,
+  onBoard,
+  embedded = false,
+}: {
+  id: string;
+  onBoard: boolean;
+  embedded?: boolean;
+}) {
   const nav = useNavigate(),
     location = useLocation(),
     open = useContext(Commands),
@@ -255,7 +272,11 @@ export function SalesWorkspace({ id, onBoard, embedded = false }: { id: string; 
     <>
       <header className={'page-head ' + (onBoard ? 'board-header' : '')}>
         <div>
-          {embedded ? <h2 className="page-title">Pipeline</h2> : <h1>{onBoard ? 'Pipeline' : 'Deal workspace'}</h1>}
+          {embedded ? (
+            <h2 className="page-title">Pipeline</h2>
+          ) : (
+            <h1>{onBoard ? 'Pipeline' : 'Deal workspace'}</h1>
+          )}
           {onBoard && <p>Move deals between stages or change their order</p>}
         </div>
         {onBoard && (
@@ -303,7 +324,13 @@ export function SalesWorkspace({ id, onBoard, embedded = false }: { id: string; 
                           <span className="count">{lane.cards.length}</span>
                         </div>
                         <p className="lane-stat">
-                          {i < 4 ? <>Value <span className="numbers">{money(lane.totals.value)}</span></> : 'Closed'}
+                          {i < 4 ? (
+                            <>
+                              Value <span className="numbers">{money(lane.totals.value)}</span>
+                            </>
+                          ) : (
+                            'Closed'
+                          )}
                         </p>
                         {i < 4 && (
                           <p className="lane-stat">
@@ -360,8 +387,17 @@ export function SalesWorkspace({ id, onBoard, embedded = false }: { id: string; 
                           </article>
                         ))}
                       </div>
-                      <button className="lane-add" aria-label={'Add deal to ' + stage}
-                        onClick={() => open({ type: 'edit', kind: 'deals', initial: { stage, probability: String(probabilities[i]) } })}>
+                      <button
+                        className="lane-add"
+                        aria-label={'Add deal to ' + stage}
+                        onClick={() =>
+                          open({
+                            type: 'edit',
+                            kind: 'deals',
+                            initial: { stage, probability: String(probabilities[i]) },
+                          })
+                        }
+                      >
                         + Add deal
                       </button>
                     </section>

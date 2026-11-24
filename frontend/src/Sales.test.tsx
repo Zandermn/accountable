@@ -1,9 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { SalesWorkspace } from './Sales';
 import { Session, stages } from './data';
 import { RecordDialog } from './dialogs';
+import { Commands } from './Records';
 afterEach(() => vi.unstubAllGlobals());
 const deal = {
   id: 'd',
@@ -25,6 +26,104 @@ const board = {
 function Routed() {
   return <SalesWorkspace onBoard={useLocation().pathname === '/pipeline'} id="d" />;
 }
+
+test('saves an edited note, keeps the draft on failure, and requests confirmation to remove it', async () => {
+  const note = {
+    id: 'note',
+    type: 'Note',
+    description: 'Discuss terms',
+    occurred_at: '2026-05-10T12:00:00Z',
+  };
+  let rejectUpdate = true;
+  const fetcher = vi.fn(async (path: string, options: RequestInit) => ({
+    ok: path !== '/api/records/activities/note' || !rejectUpdate,
+    json: async () =>
+      options.method === 'PATCH'
+        ? { message: 'The note could not be saved.' }
+        : { ...deal, timeline: [note] },
+  }));
+  vi.stubGlobal('fetch', fetcher);
+  const refresh = vi.fn();
+  const open = vi.fn();
+  render(
+    <MemoryRouter initialEntries={['/deals/d']}>
+      <Session.Provider value={{ dataset: 7, epoch: 0, refresh }}>
+        <Commands.Provider value={open}>
+          <Routed />
+        </Commands.Provider>
+      </Session.Provider>
+    </MemoryRouter>,
+  );
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Edit note' }));
+  const field = screen.getByRole('textbox', { name: 'Note' });
+  expect(field).toHaveValue('Discuss terms');
+  fireEvent.change(field, { target: { value: 'Send updated terms' } });
+  const save = screen.getByRole('button', { name: 'Save note' });
+  fireEvent.click(save);
+  expect(await screen.findByRole('alert')).toHaveTextContent('The note could not be saved.');
+  expect(field).toHaveValue('Send updated terms');
+  expect(refresh).not.toHaveBeenCalled();
+  rejectUpdate = false;
+  fireEvent.click(save);
+  await waitFor(() => expect(field).not.toBeInTheDocument());
+  expect(fetcher).toHaveBeenLastCalledWith('/api/records/activities/note', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'X-Dataset': '7' },
+    body: '{"description":"Send updated terms"}',
+  });
+  expect(refresh).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByRole('button', { name: 'Remove note' }));
+  expect(open).toHaveBeenCalledWith({ type: 'delete', kind: 'activities', row: note });
+});
+
+test('requires an expected close date when moving a closed deal back to an open stage', async () => {
+  const closed = { ...deal, stage: 'Won', expected_date: null };
+  const closedBoard = {
+    ...board,
+    columns: {
+      ...board.columns,
+      New: { totals, cards: [] },
+      Won: { totals, cards: [closed] },
+    },
+  };
+  const fetcher = vi.fn(async (_path: string, options: RequestInit) => ({
+    ok: true,
+    json: async () => (options.method === 'POST' ? {} : closedBoard),
+  }));
+  const refresh = vi.fn();
+  vi.stubGlobal('fetch', fetcher);
+  render(
+    <MemoryRouter initialEntries={['/pipeline']}>
+      <Session.Provider value={{ dataset: 7, epoch: 0, refresh }}>
+        <Routed />
+      </Session.Provider>
+    </MemoryRouter>,
+  );
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Move Renewal' }));
+  const dialog = screen.getByRole('dialog', { name: 'Move deal' });
+  fireEvent.change(within(dialog).getByLabelText('Destination stage'), {
+    target: { value: 'New' },
+  });
+  const date = within(dialog).getByLabelText('Expected close date');
+  expect(date).toBeRequired();
+  fireEvent.change(date, { target: { value: '2027-03-04' } });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Move' }));
+  await waitFor(() => expect(dialog).not.toBeInTheDocument());
+  expect(fetcher).toHaveBeenLastCalledWith('/api/pipeline/move', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Dataset': '7' },
+    body: JSON.stringify({
+      id: 'd',
+      stage: 'New',
+      before: null,
+      revision: 1,
+      expected_date: '2027-03-04',
+    }),
+  });
+  expect(refresh).toHaveBeenCalledOnce();
+});
 test('keeps the draft at the highlighted card and returns keyboard focus on close', async () => {
   Element.prototype.scrollIntoView = vi.fn();
   vi.stubGlobal(

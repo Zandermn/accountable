@@ -1,16 +1,97 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { Directory } from './Records';
+import { Commands, Details, Directory, Trash } from './Records';
 import { RecordDialog } from './dialogs';
 import { Session } from './data';
 afterEach(() => vi.unstubAllGlobals());
+
+test('contact details link related records and send activity actions for the correct contact', async () => {
+  const activity = {
+    id: 'call',
+    type: 'Call',
+    description: 'Discuss renewal',
+    occurred_at: '2026-05-10T12:00:00Z',
+    follow_up: '2026-05-11',
+    done: false,
+  };
+  const contact = {
+    id: 'buyer',
+    name: 'Pat Buyer',
+    email: 'buyer@example.com',
+    status: 'Qualified',
+    related: [{ id: 'office', name: 'New office', kind: 'organizations' }],
+    timeline: [activity],
+  };
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => contact }));
+  const open = vi.fn();
+  render(
+    <MemoryRouter>
+      <Commands.Provider value={open}>
+        <Details kind="contacts" id="buyer" />
+      </Commands.Provider>
+    </MemoryRouter>,
+  );
+
+  expect(await screen.findByRole('heading', { name: 'Pat Buyer' })).toBeVisible();
+  expect(screen.getByRole('link', { name: 'New office' })).toHaveAttribute(
+    'href',
+    '/organizations/office',
+  );
+  expect(screen.getByText('Discuss renewal')).toBeVisible();
+  expect(screen.getByText(/Follow-up 2026-05-11.*Open/)).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Log activity' }));
+  expect(open).toHaveBeenLastCalledWith({
+    type: 'edit',
+    kind: 'activities',
+    initial: { contact_id: 'buyer' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Edit activity' }));
+  expect(open).toHaveBeenLastCalledWith({ type: 'edit', kind: 'activities', row: activity });
+  fireEvent.click(screen.getByRole('button', { name: 'Delete activity' }));
+  expect(open).toHaveBeenLastCalledWith({ type: 'delete', kind: 'activities', row: activity });
+});
+
+test('filters and sorts Trash and restores the row the user chose', async () => {
+  const deleted = {
+    id: 'call',
+    kind: 'activities',
+    description: 'Discuss renewal',
+    deleted_at: '2026-05-12T12:00:00Z',
+  };
+  const fetcher = vi.fn(async (path: string) => ({
+    ok: true,
+    json: async () => (path.includes('kind=activities') ? [deleted] : []),
+  }));
+  const open = vi.fn();
+  vi.stubGlobal('fetch', fetcher);
+  render(
+    <Commands.Provider value={open}>
+      <Trash />
+    </Commands.Provider>,
+  );
+
+  expect(await screen.findByText('Trash is empty for this selection.')).toBeVisible();
+  fireEvent.change(screen.getByLabelText('Record type'), { target: { value: 'activities' } });
+  expect(await screen.findByText('Discuss renewal')).toBeVisible();
+  fireEvent.click(screen.getByRole('button', { name: 'Newest first' }));
+  await waitFor(() =>
+    expect(fetcher.mock.lastCall?.[0]).toBe('/api/trash?kind=activities&direction=asc'),
+  );
+  fireEvent.click(await screen.findByRole('button', { name: 'Restore' }));
+  expect(open).toHaveBeenCalledWith({ type: 'restore', kind: 'activities', row: deleted });
+});
 test('editing the description preserves the exact activity timestamp', async () => {
   const fetcher = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
   vi.stubGlobal('fetch', fetcher);
   const stamp = '2026-10-31T12:05:51.123456+00:00';
   const row = { id: 'a', type: 'Call', description: 'Call', occurred_at: stamp };
-  render(<RecordDialog close={() => {}} action={{ kind: 'activities', type: 'edit', dataset: 0, row: row as never }} />);
+  render(
+    <RecordDialog
+      close={() => {}}
+      action={{ kind: 'activities', type: 'edit', dataset: 0, row: row as never }}
+    />,
+  );
   fireEvent.change(screen.getByLabelText('Description *'), { target: { value: 'Called buyer' } });
   fireEvent.click(screen.getByText('Save'));
   await waitFor(() => expect(fetcher).toHaveBeenCalled());
@@ -50,12 +131,10 @@ test('search, status and sort reach the API and distinguish empty and no match',
 test('validation retains entered values and replacement disables the old form', async () => {
   vi.stubGlobal(
     'fetch',
-    vi
-      .fn()
-      .mockResolvedValue({
-        ok: false,
-        json: async () => ({ message: 'Use HTTPS or HTTP.', field: 'website' }),
-      }),
+    vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ message: 'Use HTTPS or HTTP.', field: 'website' }),
+    }),
   );
   const form = (
     <RecordDialog close={() => {}} action={{ kind: 'organizations', type: 'edit', dataset: 1 }} />

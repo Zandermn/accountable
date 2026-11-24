@@ -72,6 +72,7 @@ test('recover former links, choose replacements, and restore follow-ups to the D
   await expect(row('Arrange site visit')).toHaveCount(0);
   dialog = await restore('Old office');
   await dialog.getByRole('button', { name: 'Restore', exact: true }).click();
+  await expect(row('Old office')).toHaveCount(0);
   dialog = await restore('Sole link');
   await dialog.getByRole('button', { name: 'Restore', exact: true }).click();
   await expect(row('Sole link')).toHaveCount(0);

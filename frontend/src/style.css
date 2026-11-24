@@ -992,7 +992,9 @@ dialog select {
   max-width: 550px;
   margin-inline: auto;
 }
-.edit-deal { justify-self: start; }
+.edit-deal {
+  justify-self: start;
+}
 .deal-dock {
   position: sticky;
   top: 16px;

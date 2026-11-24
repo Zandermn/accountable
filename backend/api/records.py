@@ -37,7 +37,9 @@ def create(request: Request, kind: str, body: dict, x_dataset: int = Header()):
 
 
 @router.patch("/records/{kind}/{record_id}")
-def edit(request: Request, kind: str, record_id: str, body: dict, x_dataset: int = Header()):
+def edit(
+    request: Request, kind: str, record_id: str, body: dict, x_dataset: int = Header()
+):
     with request.app.state.store.write(x_dataset) as conn:
         return records.save(conn, kind, body, path_id(record_id))
 
@@ -49,7 +51,9 @@ def preview(request: Request, kind: str, record_id: str):
 
 
 @router.delete("/records/{kind}/{record_id}")
-def discard(request: Request, kind: str, record_id: str, body: dict, x_dataset: int = Header()):
+def discard(
+    request: Request, kind: str, record_id: str, body: dict, x_dataset: int = Header()
+):
     with request.app.state.store.write(x_dataset) as conn:
         return trash.discard(conn, kind, path_id(record_id), body.get("revision"))
 
@@ -61,6 +65,8 @@ def trash_list(request: Request, kind: str = "", direction: str = "desc"):
 
 
 @router.post("/trash/{kind}/{record_id}")
-def restore(request: Request, kind: str, record_id: str, body: dict, x_dataset: int = Header()):
+def restore(
+    request: Request, kind: str, record_id: str, body: dict, x_dataset: int = Header()
+):
     with request.app.state.store.write(x_dataset) as conn:
         return trash.restore(conn, kind, path_id(record_id), body)

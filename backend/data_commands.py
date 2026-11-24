@@ -8,7 +8,9 @@ from backend.services.backups import replace, save_backup
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Manage Accountable data on this computer.")
+    parser = argparse.ArgumentParser(
+        description="Manage Accountable data on this computer."
+    )
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("save")
     commands.add_parser("load").add_argument("backup_id")

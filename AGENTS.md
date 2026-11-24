@@ -16,4 +16,8 @@ Update `docs/STATUS.md` when you finish a piece of work
 
 ## Tests
 
-Run `npm test` from the repository root before you report a code change as complete. It runs all frontend unit tests (Vitest), backend tests (pytest), and end-to-end tests (Playwright in Chrome). Keep all three suites in this command. Run each suite even if an earlier suite fails. The command must return a nonzero exit code if any suite fails or cannot start.
+Run `npm run check` from the repository root before you report a code change as complete. It checks formatting, lint rules, frontend and backend types, and secrets, then runs `npm test`. Use `npm run check:quick` for checks during development without the end-to-end tests.
+
+`npm test` runs all frontend unit tests (Vitest), backend tests (pytest), and end-to-end tests (Playwright in Chrome). Keep all three suites in this command. Run each suite even if an earlier suite fails. The command must return a nonzero exit code if any suite fails or cannot start.
+
+Vitest and pytest must each reach at least 80% line coverage of application code.

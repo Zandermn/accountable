@@ -22,11 +22,20 @@ def test_move_placement_and_stale_event_idempotency(api):
         rev = api.get("/api/pipeline").json()["revision"]
         return api.post(
             "/api/pipeline/move",
-            json={"id": row["id"], "stage": stage, "before": before, "revision": rev, **extra},
+            json={
+                "id": row["id"],
+                "stage": stage,
+                "before": before,
+                "revision": rev,
+                **extra,
+            },
         )
 
     def order(stage):
-        return [r["name"] for r in api.get("/api/pipeline").json()["columns"][stage]["cards"]]
+        return [
+            r["name"]
+            for r in api.get("/api/pipeline").json()["columns"][stage]["cards"]
+        ]
 
     assert move(c, "New", a["id"]).is_success and order("New") == ["C", "A", "B"]
     assert move(c, "New", b["id"]).is_success and order("New") == ["A", "C", "B"]
@@ -35,10 +44,15 @@ def test_move_placement_and_stale_event_idempotency(api):
     assert saved["probability"] == 37 and saved["timeline"] == []
     rev = api.get("/api/pipeline").json()["revision"]
     assert move(c, "Proposal").is_success and order("Proposal") == ["C"]
-    assert move(c, "Lost", revision=rev).status_code == 409 and order("New") == ["B", "A"]
+    assert move(c, "Lost", revision=rev).status_code == 409 and order("New") == [
+        "B",
+        "A",
+    ]
     saved = api.get("/api/records/deals/" + c["id"]).json()
     assert (
-        saved["stage"] == "Proposal" and saved["probability"] == 50 and len(saved["timeline"]) == 1
+        saved["stage"] == "Proposal"
+        and saved["probability"] == 50
+        and len(saved["timeline"]) == 1
     )
 
 
@@ -54,20 +68,33 @@ def test_close_switch_and_reopen_with_and_without_expected_date(api):
     api.patch(url, json={"actual_date": "2025-12-31"}).raise_for_status()
     assert api.patch(url, json={"stage": "Lost"}).json()["actual_date"] == "2025-12-31"
     reopened = api.patch(url, json={"stage": "New"}).json()
-    assert reopened["actual_date"] is None and reopened["expected_date"] == row["expected_date"]
+    assert (
+        reopened["actual_date"] is None
+        and reopened["expected_date"] == row["expected_date"]
+    )
     closed = deal(api, stage="Won", expected_date=None, organization_id=org["id"])
     url = "/api/records/deals/" + closed["id"]
     assert api.patch(url, json={"stage": "New"}).status_code == 422
-    assert api.patch(url, json={"stage": "New", "expected_date": "2026-12-01"}).is_success
+    assert api.patch(
+        url, json={"stage": "New", "expected_date": "2026-12-01"}
+    ).is_success
 
 
 def test_known_totals_calendar_buckets_funnel_and_followups(api):
     org = add(api, "organizations", name="Buyer")
     a = deal(api, stage="Qualified", probability=25, organization_id=org["id"])
     deal(api, stage="Proposal", value_cents=20000, organization_id=org["id"])
-    deal(api, stage="Won", value_cents=5000, actual_date="2026-01-31", organization_id=org["id"])
+    deal(
+        api,
+        stage="Won",
+        value_cents=5000,
+        actual_date="2026-01-31",
+        organization_id=org["id"],
+    )
     for stage in ["Proposal", "Qualified"]:
-        api.patch("/api/records/deals/" + a["id"], json={"stage": stage}).raise_for_status()
+        api.patch(
+            "/api/records/deals/" + a["id"], json={"stage": stage}
+        ).raise_for_status()
     for due in ("2026-02-27", "2026-02-28", "2026-03-01"):
         add(
             api,

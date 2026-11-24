@@ -11,9 +11,27 @@ import {
   Tooltip,
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
-import { api, detailPath, money, ReadState, recordPath, Session, ShortDate, useRead, type Row } from './data';
+import {
+  api,
+  detailPath,
+  money,
+  ReadState,
+  recordPath,
+  Session,
+  ShortDate,
+  useRead,
+  type Row,
+} from './data';
 import { colors, Stats, type Totals } from './Sales';
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Filler, Tooltip);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Filler,
+  Tooltip,
+);
 type Month = { month: string; wins: number; revenue: number };
 type Item = Row & { owner: string; owner_id: string; due: string };
 type Report = {
@@ -26,14 +44,23 @@ type Report = {
 function Chart({ months, revenue }: { months: Month[]; revenue?: boolean }) {
   const Component = revenue ? Line : Bar,
     name = revenue ? 'Won revenue' : 'Deals won';
-  const labels = months.map((m) => new Date(m.month + '-01T12:00:00').toLocaleString('en-US', { month: 'short' })),
+  const labels = months.map((m) =>
+      new Date(m.month + '-01T12:00:00').toLocaleString('en-US', { month: 'short' }),
+    ),
     values = months.map((m) => (revenue ? m.revenue / 100 : m.wins));
-  const step = revenue ? Math.max(10000, Math.ceil(Math.max(...values) / 30000) * 10000)
+  const step = revenue
+    ? Math.max(10000, Math.ceil(Math.max(...values) / 30000) * 10000)
     : Math.max(1, Math.ceil(Math.max(...values) / 3));
-  const ticks = { color: '#46646c', font: { family: '"JetBrains Mono", Consolas, monospace', size: 10 } };
+  const ticks = {
+    color: '#46646c',
+    font: { family: '"JetBrains Mono", Consolas, monospace', size: 10 },
+  };
   return (
     <section className={'panel ' + (revenue ? 'revenue' : 'wins')}>
-      <div className="panel-head"><h2>{name}</h2><small>Last 6 months</small></div>
+      <div className="panel-head">
+        <h2>{name}</h2>
+        <small>Last 6 months</small>
+      </div>
       <div className="chart">
         <Component
           aria-label={name + ' by month'}
@@ -65,8 +92,10 @@ function Chart({ months, revenue }: { months: Month[]; revenue?: boolean }) {
                 grid: { color: '#e3ecee', drawTicks: false },
                 border: { display: false },
                 ticks: {
-                  ...ticks, stepSize: step, padding: 6,
-                  callback: (v) => revenue ? (v ? 'US$' + Number(v) / 1000 + 'k' : 'US$0') : v,
+                  ...ticks,
+                  stepSize: step,
+                  padding: 6,
+                  callback: (v) => (revenue ? (v ? 'US$' + Number(v) / 1000 + 'k' : 'US$0') : v),
                 },
               },
             },
@@ -118,7 +147,9 @@ export function Dashboard() {
           <Stats totals={report.totals} />
           <div className="dash-grid">
             <section className="panel funnel">
-              <div className="panel-head"><h2>Sales funnel</h2></div>
+              <div className="panel-head">
+                <h2>Sales funnel</h2>
+              </div>
               <p className="muted">Value of deals that reached each stage</p>
               <div className="funnel-rows">
                 {Object.entries(report.funnel).map(([stage, v], i) => (
@@ -143,38 +174,51 @@ export function Dashboard() {
             <Chart months={report.months} revenue />
             <Chart months={report.months} />
             <section className="panel tasks">
-              <div className="panel-head"><h2>Follow-ups</h2><small>{report.followups.length} open</small></div>
+              <div className="panel-head">
+                <h2>Follow-ups</h2>
+                <small>{report.followups.length} open</small>
+              </div>
               {error && <p role="alert">{error}</p>}
               {!report.followups.length && <p>No open follow-ups.</p>}
-              <div className="task-groups">{['Overdue', 'Upcoming'].map((group) => {
-                const tasks = report.followups.filter(
-                  (t) => (t.due === 'Overdue') === (group === 'Overdue'),
-                );
-                return (
-                  !!tasks.length && (
-                    <section key={group}>
-                      <h3 className={'group-title ' + group.toLowerCase()}>{group}</h3>
-                      {tasks.map((t) => (
-                        <article className="task-row" key={t.id}>
-                          <button
-                            className="check"
-                            aria-label={'Mark done: ' + t.description}
-                            onClick={() => complete(t.id)}
-                          />
-                          <div className="task-copy">
-                            <strong>{t.description}</strong>
-                            <Link className="text-link" to={detailPath(t.kind, t.owner_id)}>{t.owner}</Link>
-                          </div>
-                          {t.due === 'Today' ? <time dateTime={t.follow_up}>Today</time> : <ShortDate value={t.follow_up} />}
-                        </article>
-                      ))}
-                    </section>
-                  )
-                );
-              })}</div>
+              <div className="task-groups">
+                {['Overdue', 'Upcoming'].map((group) => {
+                  const tasks = report.followups.filter(
+                    (t) => (t.due === 'Overdue') === (group === 'Overdue'),
+                  );
+                  return (
+                    !!tasks.length && (
+                      <section key={group}>
+                        <h3 className={'group-title ' + group.toLowerCase()}>{group}</h3>
+                        {tasks.map((t) => (
+                          <article className="task-row" key={t.id}>
+                            <button
+                              className="check"
+                              aria-label={'Mark done: ' + t.description}
+                              onClick={() => complete(t.id)}
+                            />
+                            <div className="task-copy">
+                              <strong>{t.description}</strong>
+                              <Link className="text-link" to={detailPath(t.kind, t.owner_id)}>
+                                {t.owner}
+                              </Link>
+                            </div>
+                            {t.due === 'Today' ? (
+                              <time dateTime={t.follow_up}>Today</time>
+                            ) : (
+                              <ShortDate value={t.follow_up} />
+                            )}
+                          </article>
+                        ))}
+                      </section>
+                    )
+                  );
+                })}
+              </div>
             </section>
             <section className="panel activity">
-              <div className="panel-head"><h2>Recent activity</h2></div>
+              <div className="panel-head">
+                <h2>Recent activity</h2>
+              </div>
               {!report.recent.length && <p>No activity yet.</p>}
               {report.recent.slice(0, 3).map(activityRow)}
               {report.recent.length > 3 && (
@@ -193,10 +237,17 @@ export function Dashboard() {
 function activityRow(a: Item) {
   return (
     <article key={a.id} className="activity-row">
-      <span aria-hidden="true" className="activity-icon">{a.type === 'Stage' ? '↗' : a.type[0]}</span>
+      <span aria-hidden="true" className="activity-icon">
+        {a.type === 'Stage' ? '↗' : a.type[0]}
+      </span>
       <div className="activity-copy">
-        <strong>{a.type !== 'Stage' && a.type + ' · '}{a.description}</strong>
-        <Link className="text-link" to={detailPath(a.kind, a.owner_id)}>{a.owner}</Link>
+        <strong>
+          {a.type !== 'Stage' && a.type + ' · '}
+          {a.description}
+        </strong>
+        <Link className="text-link" to={detailPath(a.kind, a.owner_id)}>
+          {a.owner}
+        </Link>
       </div>
       <ShortDate value={a.occurred_at} />
     </article>

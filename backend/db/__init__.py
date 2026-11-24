@@ -24,7 +24,14 @@ from sqlalchemy import (
 from sqlalchemy.schema import CreateTable
 
 schema = MetaData()
-STAGES = {"New": 10, "Qualified": 25, "Proposal": 50, "Negotiation": 75, "Won": 100, "Lost": 0}
+STAGES = {
+    "New": 10,
+    "Qualified": 25,
+    "Proposal": 50,
+    "Negotiation": 75,
+    "Won": 100,
+    "Lost": 0,
+}
 OPEN = tuple(STAGES)[:4]
 
 
@@ -127,7 +134,10 @@ detached = Table(
     link("deal_id", "deals"),
 )
 tickets = Table(
-    "backup_confirmations", schema, Column("id", String, primary_key=True), Column("backup", String)
+    "backup_confirmations",
+    schema,
+    Column("id", String, primary_key=True),
+    Column("backup", String),
 )
 TABLES = {t.name: t for t in (organizations, contacts, deals, activities)}
 
@@ -140,12 +150,16 @@ class Problem(Exception):
 
 
 class Store:
-    data_tables = [organizations, contacts, deals, activities, events, detached]
+    data_tables = (organizations, contacts, deals, activities, events, detached)
 
     def __init__(self, path=None, seed=True):
-        self.path = Path(path or os.environ.get("ACCOUNTABLE_DB", "data/accountable.db"))
+        self.path = Path(
+            path or os.environ.get("ACCOUNTABLE_DB", "data/accountable.db")
+        )
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.backups = Path(os.environ.get("ACCOUNTABLE_BACKUPS", self.path.parent / "backups"))
+        self.backups = Path(
+            os.environ.get("ACCOUNTABLE_BACKUPS", self.path.parent / "backups")
+        )
         self.engine = create_engine(
             URL.create("sqlite", database=str(self.path)),
             connect_args={"timeout": 15, "autocommit": False},
@@ -161,7 +175,9 @@ class Store:
             version = conn.scalar(select(state.c.schema_version))
             if version is None:
                 schema.create_all(conn)
-                conn.execute(insert(state).values(id=1, schema_version=1, dataset=1, revision=0))
+                conn.execute(
+                    insert(state).values(id=1, schema_version=1, dataset=1, revision=0)
+                )
                 if seed:
                     from backend.seed import sample
 

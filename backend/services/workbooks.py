@@ -61,7 +61,9 @@ def export(conn, template=False):
                     raise Problem(
                         f"Excel can store up to 32,767 characters per cell. "
                         f"Check {header} on record {row['id']} or save a full backup.",
-                        field=header, sheet=name, row=index,
+                        field=header,
+                        sheet=name,
+                        row=index,
                     )
                 cell = sheet.cell(index, position)
                 cell.value = value / 100 if key == "value_cents" else value
@@ -92,7 +94,9 @@ def cell_value(cell, key):
     if key in ("expected_date", "actual_date") and isinstance(value, date):
         return (value.date() if isinstance(value, datetime) else value).isoformat()
     if not isinstance(value, str):
-        raise Problem("Enter text." if not key.endswith("_date") else "Enter a calendar date.")
+        raise Problem(
+            "Enter text." if not key.endswith("_date") else "Enter a calendar date."
+        )
     return value.strip() or None
 
 
@@ -101,7 +105,9 @@ def parse(data):
         with ZipFile(BytesIO(data)) as archive:
             if sum(item.file_size for item in archive.infolist()) > 64 * 1024 * 1024:
                 raise Problem("Select a smaller workbook.")
-        book = load_workbook(BytesIO(data), read_only=True, data_only=False, keep_links=False)
+        book = load_workbook(
+            BytesIO(data), read_only=True, data_only=False, keep_links=False
+        )
     except Problem:
         raise
     except Exception as exc:
@@ -117,7 +123,10 @@ def parse(data):
             headers = [c.value for c in next(rows, ())]
             if len(headers) != len(columns) or set(headers) != set(columns):
                 raise Problem(
-                    "Use all template headers for this sheet.", field="Headers", sheet=name, row=1
+                    "Use all template headers for this sheet.",
+                    field="Headers",
+                    sheet=name,
+                    row=1,
                 )
             for index, cells in enumerate(rows, 2):
                 if all(c.value is None for c in cells):
@@ -127,12 +136,17 @@ def parse(data):
                     try:
                         fields[columns[header]] = cell_value(cell, columns[header])
                     except Problem as exc:
-                        raise Problem(str(exc), field=header, sheet=name, row=index) from exc
+                        raise Problem(
+                            str(exc), field=header, sheet=name, row=index
+                        ) from exc
                 identifier = fields.pop("id")
                 if identifier:
                     if identifier in seen:
                         raise Problem(
-                            "Duplicate ID in the workbook.", field="ID", sheet=name, row=index
+                            "Duplicate ID in the workbook.",
+                            field="ID",
+                            sheet=name,
+                            row=index,
                         )
                     seen.add(identifier)
                 yield name, index, identifier, fields
@@ -147,7 +161,9 @@ def exchange(store, data, dataset, supplied_token=None):
         version = conn.execute(select(state)).mappings().one()
         token = sha256(data + f"|{dataset}|{version['revision']}".encode()).hexdigest()
         if not preview and supplied_token != token:
-            raise Problem("The workbook or database changed. Preview the workbook again.", 409)
+            raise Problem(
+                "The workbook or database changed. Preview the workbook again.", 409
+            )
         trial = conn.begin_nested()
         changes = []
         for sheet, index, identifier, fields in rows:
@@ -158,12 +174,17 @@ def exchange(store, data, dataset, supplied_token=None):
                     raise Problem("This ID belongs to a record in Trash.", 409, "id")
                 if kind == "deals" and old and fields["probability"] is None:
                     fields["probability"] = old["probability"]
-                row = save(conn, kind, fields, identifier if old else None, new_id=identifier)
+                row = save(
+                    conn, kind, fields, identifier if old else None, new_id=identifier
+                )
             except Problem as exc:
                 header = next(
-                    (h for h, k in COLUMNS[sheet].items() if k == exc.detail["field"]), "ID"
+                    (h for h, k in COLUMNS[sheet].items() if k == exc.detail["field"]),
+                    "ID",
                 )
-                raise Problem(str(exc), exc.status, header, sheet=sheet, row=index) from exc
+                raise Problem(
+                    str(exc), exc.status, header, sheet=sheet, row=index
+                ) from exc
             change = "Update" if old else "Add"
             summary = f"{sheet}, row {index}: {change} {row['name']}"
             if old and kind == "deals" and old["stage"] != row["stage"]:

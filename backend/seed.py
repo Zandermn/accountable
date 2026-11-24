@@ -70,7 +70,9 @@ def sample(conn):
                 value_cents=(i + 2) * 185000,
                 position=i,
                 expected_date=close.isoformat(),
-                actual_date=(today - timedelta(days=(i - 4) * 22)).isoformat() if closed else None,
+                actual_date=(today - timedelta(days=(i - 4) * 22)).isoformat()
+                if closed
+                else None,
                 organization_id=f"org-{i % 4}",
                 contact_id=f"person-{i % 4}",
             )
@@ -96,7 +98,9 @@ def sample(conn):
             ("Call", "Schedule the clinic walkthrough", 6),
         ]
     ):
-        owner = {"contact_id": f"person-{i}"} if i % 2 == 0 else {"deal_id": f"deal-{i}"}
+        owner = (
+            {"contact_id": f"person-{i}"} if i % 2 == 0 else {"deal_id": f"deal-{i}"}
+        )
         conn.execute(
             insert(activities).values(
                 **owner,

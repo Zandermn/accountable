@@ -53,7 +53,11 @@ const monthDay = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeri
 export function ShortDate({ value }: { value: string }) {
   if (!value) return <>—</>;
   const date = new Date(value.length === 10 ? value + 'T12:00:00' : value);
-  return <time dateTime={value} title={date.toLocaleDateString()}>{monthDay.format(date)}</time>;
+  return (
+    <time dateTime={value} title={date.toLocaleDateString()}>
+      {monthDay.format(date)}
+    </time>
+  );
 }
 export const money = (cents: number) =>
   'US$' +

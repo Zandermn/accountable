@@ -1,32 +1,41 @@
-import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { python } from './python.mjs';
+import { runStep } from './run-step.mjs';
 
-function runSuite(suite, binary, args, cwd = '.') {
-  const run = spawnSync(binary, args, { cwd, stdio: 'inherit' });
-  if (run.status !== 0) {
-    const reason = run.error?.message ?? run.signal ?? `exit code ${run.status}`;
-    console.error(`${suite} failed (${reason}).`);
+function runWithTestDirectory(suite, run) {
+  try {
+    const dir = mkdtempSync(join(tmpdir(), `accountable-${suite.toLowerCase()}-`));
+    try {
+      run(dir);
+    } finally {
+      rmSync(dir, { recursive: true, force: true, maxRetries: 5 });
+    }
+  } catch (error) {
+    console.error(`Could not prepare or remove the ${suite} directory.`, error.message);
     process.exitCode = 1;
   }
 }
 
-runSuite('Vitest', process.execPath, ['../node_modules/vitest/vitest.mjs', 'run'], 'frontend');
+runWithTestDirectory('Vitest', (dir) => {
+  runStep(
+    'Vitest',
+    process.execPath,
+    ['../node_modules/vitest/vitest.mjs', 'run', '--coverage.reportsDirectory', dir],
+    { cwd: 'frontend' },
+  );
+});
 
-try {
-  const dir = mkdtempSync(join(tmpdir(), 'accountable-pytest-'));
-  try {
-    runSuite('pytest', python, [
-      '-m', 'pytest', '--basetemp', join(dir, 'tests'), '-o', `cache_dir=${join(dir, 'cache')}`,
-    ]);
-  } finally {
-    rmSync(dir, { recursive: true, force: true, maxRetries: 5 });
-  }
-} catch (error) {
-  console.error('Could not prepare or remove the pytest directory.', error.message);
-  process.exitCode = 1;
+runWithTestDirectory('pytest', (dir) => {
+  runStep(
+    'pytest',
+    python,
+    ['-m', 'pytest', '--basetemp', join(dir, 'tests'), '-o', `cache_dir=${join(dir, 'cache')}`],
+    { env: { ...process.env, COVERAGE_FILE: join(dir, '.coverage') } },
+  );
+});
+
+if (!process.argv.includes('--quick')) {
+  runStep('Playwright', process.execPath, ['node_modules/@playwright/test/cli.js', 'test']);
 }
-
-runSuite('Playwright', process.execPath, ['node_modules/@playwright/test/cli.js', 'test']);

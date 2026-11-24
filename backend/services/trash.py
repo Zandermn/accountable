@@ -31,7 +31,8 @@ def preview(conn, kind, record_id):
     blockers, clear, cascade = [], [], []
     if kind == "organizations":
         clear = [
-            dict(r, kind="contacts") for r in linked(conn, contacts, "organization_id", record_id)
+            dict(r, kind="contacts")
+            for r in linked(conn, contacts, "organization_id", record_id)
         ]
         for deal in linked(conn, deals, "organization_id", record_id):
             (clear if deal["contact_id"] else blockers).append(dict(deal, kind="deals"))
@@ -76,7 +77,9 @@ def discard(conn, kind, record_id, revision):
     )
     table = table_for(kind)
     conn.execute(
-        update(table).where(table.c.id == record_id).values(deleted_at=stamp, deletion=operation)
+        update(table)
+        .where(table.c.id == record_id)
+        .values(deleted_at=stamp, deletion=operation)
     )
     return {"ok": True}
 
@@ -90,8 +93,12 @@ def recovery(conn, kind, row):
     ):
         record_id = row.get(key)
         if key == "organization_id" and not record_id and kind in ("contacts", "deals"):
-            foreign = detached.c.contact_id if kind == "contacts" else detached.c.deal_id
-            record_id = conn.scalar(select(detached.c.organization_id).where(foreign == row["id"]))
+            foreign = (
+                detached.c.contact_id if kind == "contacts" else detached.c.deal_id
+            )
+            record_id = conn.scalar(
+                select(detached.c.organization_id).where(foreign == row["id"])
+            )
         if record_id:
             target = find(conn, table, record_id)
             result[key] = {
@@ -108,16 +115,22 @@ def trash_list(conn, kind=None, direction="desc"):
     for name, table in TABLES.items():
         if kind and kind != name:
             continue
-        for row in conn.execute(select(table).where(table.c.deleted_at.is_not(None))).mappings():
+        for row in conn.execute(
+            select(table).where(table.c.deleted_at.is_not(None))
+        ).mappings():
             rows.append(dict(row, kind=name, former=recovery(conn, name, row)))
-    return sorted(rows, key=lambda r: (r["deleted_at"], r["id"]), reverse=direction == "desc")
+    return sorted(
+        rows, key=lambda r: (r["deleted_at"], r["id"]), reverse=direction == "desc"
+    )
 
 
 def restore(conn, kind, record_id, choices):
     row = get(conn, kind, record_id, trashed=True, stale_action=True)
     operation = row["deletion"]
     if choices.get("deletion") != operation:
-        raise Problem("This Trash entry changed. Close this dialog and select Restore again.", 409)
+        raise Problem(
+            "This Trash entry changed. Close this dialog and select Restore again.", 409
+        )
     table = table_for(kind)
     values = {"deleted_at": None, "deletion": None, "updated_at": now()}
     former = recovery(conn, kind, row)
@@ -126,7 +139,9 @@ def restore(conn, kind, record_id, choices):
             select(detached).where(detached.c.operation == operation)
         ).mappings():
             target, target_id = (
-                (contacts, link["contact_id"]) if link["contact_id"] else (deals, link["deal_id"])
+                (contacts, link["contact_id"])
+                if link["contact_id"]
+                else (deals, link["deal_id"])
             )
             conn.execute(
                 update(target)
@@ -151,7 +166,10 @@ def restore(conn, kind, record_id, choices):
             require_link(conn, organizations, values, "organization_id")
         conn.execute(delete(detached).where(detached.c.contact_id == record_id))
     elif kind == "deals":
-        for key, owner in (("organization_id", organizations), ("contact_id", contacts)):
+        for key, owner in (
+            ("organization_id", organizations),
+            ("contact_id", contacts),
+        ):
             previous = former.get(key)
             values[key] = choices.get(
                 key, previous["id"] if previous and previous["active"] else None
@@ -159,7 +177,9 @@ def restore(conn, kind, record_id, choices):
             require_link(conn, owner, values, key)
         if not values["organization_id"] and not values["contact_id"]:
             raise Problem(
-                "Restore or select an organization or main contact first.", 409, former=former
+                "Restore or select an organization or main contact first.",
+                409,
+                former=former,
             )
         values["position"] = append_position(conn, row["stage"])
         if values["organization_id"] or "organization_id" in choices:

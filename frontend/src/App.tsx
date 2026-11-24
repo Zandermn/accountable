@@ -1,5 +1,13 @@
 import { Link, NavLink } from 'react-router-dom';
-import { BriefcaseBusiness, Building2, ContactRound, Database, LayoutDashboard, SquareKanban, Trash2 } from 'lucide-react';
+import {
+  BriefcaseBusiness,
+  Building2,
+  ContactRound,
+  Database,
+  LayoutDashboard,
+  SquareKanban,
+  Trash2,
+} from 'lucide-react';
 import { Workspace } from './Workspace';
 const sections = [
   { name: 'Dashboard', icon: LayoutDashboard },

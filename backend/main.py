@@ -22,7 +22,9 @@ def create_app(database=None, seed=True):
 
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
     app.add_middleware(
-        TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1"], www_redirect=False
+        TrustedHostMiddleware,
+        allowed_hosts=["localhost", "127.0.0.1"],
+        www_redirect=False,
     )
     app.include_router(record_routes)
     app.include_router(sales_routes)
@@ -36,7 +38,10 @@ def create_app(database=None, seed=True):
     @app.get("/api/version")
     def version(request: Request):
         with request.app.state.store.read() as conn:
-            return dict(conn.execute(select(state)).mappings().one(), today=date.today().isoformat())
+            return dict(
+                conn.execute(select(state)).mappings().one(),
+                today=date.today().isoformat(),
+            )
 
     return app
 

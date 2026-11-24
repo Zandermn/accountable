@@ -12,14 +12,20 @@ from backend.services import backups
 
 def snapshot(store):
     with store.read() as conn:
-        return backups.snapshot(conn), dict(conn.execute(select(state)).mappings().one())
+        return backups.snapshot(conn), dict(
+            conn.execute(select(state)).mappings().one()
+        )
 
 
 def prepare(api):
     org = add(api, "organizations", name="Archive")
-    who = add(api, "contacts", name="Buyer", status="Qualified", organization_id=org["id"])
+    who = add(
+        api, "contacts", name="Buyer", status="Qualified", organization_id=org["id"]
+    )
     sale = deal(api, organization_id=org["id"], contact_id=who["id"])
-    api.patch("/api/records/deals/" + sale["id"], json={"stage": "Proposal"}).raise_for_status()
+    api.patch(
+        "/api/records/deals/" + sale["id"], json={"stage": "Proposal"}
+    ).raise_for_status()
     activity = add(
         api,
         "activities",
@@ -29,7 +35,9 @@ def prepare(api):
         contact_id=who["id"],
         follow_up="2026-11-04",
     )
-    api.patch("/api/records/activities/" + activity["id"], json={"done": True}).raise_for_status()
+    api.patch(
+        "/api/records/activities/" + activity["id"], json={"done": True}
+    ).raise_for_status()
     assert remove(api, "activities", activity).is_success
     assert remove(api, "organizations", org).is_success
     return sale
@@ -40,17 +48,25 @@ def test_roundtrip_and_old_dataset_write(api):
     row = prepare(api)
     original, version = snapshot(store)
     saved = backups.save_backup(store)
-    api.patch("/api/records/deals/" + row["id"], json={"name": "Later"}).raise_for_status()
+    api.patch(
+        "/api/records/deals/" + row["id"], json={"name": "Later"}
+    ).raise_for_status()
     before, _ = snapshot(store)
     auto = backups.replace(store, saved["id"])
     assert backups.read_backup(store, auto["id"]) == before
     result, updated = snapshot(store)
     assert result == original and updated["dataset"] == version["dataset"] + 1
-    assert api.patch("/api/records/deals/" + row["id"], json={"name": "Stale"}).status_code == 409
+    assert (
+        api.patch("/api/records/deals/" + row["id"], json={"name": "Stale"}).status_code
+        == 409
+    )
     assert api.get("/api/records/deals/" + row["id"]).json()["name"] == row["name"]
     auto = backups.replace(store)
     assert backups.read_backup(store, auto["id"]) == original
-    assert api.get("/api/trash").json() == [] and len(api.get("/api/records/deals").json()) >= 6
+    assert (
+        api.get("/api/trash").json() == []
+        and len(api.get("/api/records/deals").json()) >= 6
+    )
 
 
 @pytest.mark.parametrize("mode", ["load", "reset"])
@@ -102,7 +118,9 @@ def test_writer_lock_covers_snapshot_and_replacement(api, monkeypatch, mode):
             pytest.fail("A stale writer entered the locked transaction")
 
     with ThreadPoolExecutor(2) as pool:
-        first = pool.submit(backups.replace, store, saved["id"] if mode == "load" else None)
+        first = pool.submit(
+            backups.replace, store, saved["id"] if mode == "load" else None
+        )
         assert published.wait(5)
         second = pool.submit(writer)
         assert started.wait(5)
@@ -134,7 +152,9 @@ def test_deletion_requires_matching_uncancelled_confirmations(api):
     a, b = [backups.save_backup(store)["id"] for _ in range(2)]
 
     def final(identifier, token):
-        return api.request("DELETE", "/api/backups/" + identifier, json={"token": token})
+        return api.request(
+            "DELETE", "/api/backups/" + identifier, json={"token": token}
+        )
 
     assert final(a, "missing").status_code == 409
     token = api.post("/api/backups/" + a + "/confirm").json()["token"]

@@ -18,13 +18,17 @@ ID_PATTERN = re.compile(r"backup-[0-9a-f]{32}")
 
 def snapshot(conn):
     return {
-        table.name: [dict(r) for r in conn.execute(select(table).order_by(table.c.id)).mappings()]
+        table.name: [
+            dict(r) for r in conn.execute(select(table).order_by(table.c.id)).mappings()
+        ]
         for table in Store.data_tables
     }
 
 
 def digest(data):
-    encoded = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    encoded = json.dumps(
+        data, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode()
     return hashlib.sha256(encoded).hexdigest()
 
 
@@ -73,7 +77,7 @@ def validate(data):
     for table in Store.data_tables:
         rows = data[table.name]
         if not isinstance(rows, list):
-            raise ValueError
+            raise TypeError
         index = {}
         for row in rows:
             if not isinstance(row, dict) or set(row) != set(table.c.keys()):
@@ -119,7 +123,9 @@ def validate(data):
                     continue
                 owner = indexed[fk.column.table.name].get(identifier)
                 if owner is None or (
-                    table.name in TABLES and not row["deleted_at"] and owner["deleted_at"]
+                    table.name in TABLES
+                    and not row["deleted_at"]
+                    and owner["deleted_at"]
                 ):
                     raise ValueError
     for row in data["contacts"]:
@@ -153,10 +159,16 @@ def validate(data):
         if row["follow_up"]:
             date.fromisoformat(row["follow_up"])
     for row in data["events"]:
-        if not row["deal_id"] or row["previous"] not in STAGES or row["stage"] not in STAGES:
+        if (
+            not row["deal_id"]
+            or row["previous"] not in STAGES
+            or row["stage"] not in STAGES
+        ):
             raise ValueError
     for row in data["detached"]:
-        if not row["organization_id"] or bool(row["deal_id"]) == bool(row["contact_id"]):
+        if not row["organization_id"] or bool(row["deal_id"]) == bool(
+            row["contact_id"]
+        ):
             raise ValueError
 
 

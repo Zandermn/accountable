@@ -70,8 +70,12 @@ export function Workspace() {
             <Data />
           ) : (
             <>
-              <section id="dashboard" aria-label="Dashboard"><Dashboard /></section>
-              <section id="pipeline" aria-label="Pipeline"><SalesWorkspace id="" onBoard embedded /></section>
+              <section id="dashboard" aria-label="Dashboard">
+                <Dashboard />
+              </section>
+              <section id="pipeline" aria-label="Pipeline">
+                <SalesWorkspace id="" onBoard embedded />
+              </section>
             </>
           )}
         </div>

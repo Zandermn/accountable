@@ -6,7 +6,15 @@ from openpyxl import Workbook, load_workbook
 
 HEADERS = {
     "Organizations": ["ID", "Name", "Website", "Industry", "Notes"],
-    "Contacts": ["ID", "Name", "Email", "Phone", "Job title", "Status", "Organization ID"],
+    "Contacts": [
+        "ID",
+        "Name",
+        "Email",
+        "Phone",
+        "Job title",
+        "Status",
+        "Organization ID",
+    ],
     "Deals": [
         "ID",
         "Name",
@@ -51,7 +59,9 @@ def apply(api, data):
 def test_cross_sheet_partial_update_blank_probability_and_export_text(api):
     data = workbook(
         {
-            "Deals": [["d", "Contract", "Qualified", 123.45, 39, "2026-12-01", None, "o", "c"]],
+            "Deals": [
+                ["d", "Contract", "Qualified", 123.45, 39, "2026-12-01", None, "o", "c"]
+            ],
             "Contacts": [["c", "June", None, None, None, "Lead", "o"]],
             "Organizations": [["o", "Company", None, "Retail"]],
         }
@@ -60,12 +70,32 @@ def test_cross_sheet_partial_update_blank_probability_and_export_text(api):
     assert apply(
         api,
         workbook(
-            {"Deals": [["d", "Contract", "Qualified", 150, None, "2026-12-02", None, "o", None]]}
+            {
+                "Deals": [
+                    [
+                        "d",
+                        "Contract",
+                        "Qualified",
+                        150,
+                        None,
+                        "2026-12-02",
+                        None,
+                        "o",
+                        None,
+                    ]
+                ]
+            }
         ),
     ).is_success
     row = api.get("/api/records/deals/d").json()
-    assert (row["value_cents"], row["probability"], row["contact_id"]) == (15000, 39, None)
-    moved = workbook({"Deals": [["d", "Contract", "Lost", 150, 60, "2026-12-02", None, "o", None]]})
+    assert (row["value_cents"], row["probability"], row["contact_id"]) == (
+        15000,
+        39,
+        None,
+    )
+    moved = workbook(
+        {"Deals": [["d", "Contract", "Lost", 150, 60, "2026-12-02", None, "o", None]]}
+    )
     assert "0%" in str(send(api, moved).json()["changes"])
     assert (
         apply(api, moved).is_success
@@ -74,7 +104,8 @@ def test_cross_sheet_partial_update_blank_probability_and_export_text(api):
     api.patch("/api/records/organizations/o", json={"notes": "=1+1"}).raise_for_status()
     book = load_workbook(BytesIO(api.get("/api/workbook/export").content))
     assert (
-        book["Organizations"]["E2"].value == "=1+1" and book["Organizations"]["E2"].data_type == "s"
+        book["Organizations"]["E2"].value == "=1+1"
+        and book["Organizations"]["E2"].data_type == "s"
     )
     assert book["Deals"]["D2"].value == 150
     template = load_workbook(BytesIO(api.get("/api/workbook/template").content))
@@ -116,12 +147,20 @@ def test_errors_report_location_and_preserve_database(api, sheets, field):
 def test_revalidate_preview_after_write_or_workbook_change(api):
     data = workbook({"Organizations": [["a", "Add me"]]})
     token = send(api, data).json()["token"]
-    assert send(api, workbook({"Organizations": [["b", "Different"]]}), token).status_code == 409
+    assert (
+        send(api, workbook({"Organizations": [["b", "Different"]]}), token).status_code
+        == 409
+    )
     other = add(api, "organizations", name="Other")
     assert send(api, data, token).status_code == 409
-    assert [r["name"] for r in api.get("/api/records/organizations").json()] == ["Other"]
+    assert [r["name"] for r in api.get("/api/records/organizations").json()] == [
+        "Other"
+    ]
     assert remove(api, "organizations", other).is_success
-    assert send(api, workbook({"Organizations": [[other["id"], "Retry"]]})).status_code == 409
+    assert (
+        send(api, workbook({"Organizations": [[other["id"], "Retry"]]})).status_code
+        == 409
+    )
 
 
 def test_import_preserves_close_dates_across_stage_changes(api):
@@ -149,7 +188,10 @@ def test_import_rejects_a_blank_close_date_without_a_stage_change(api):
     response = send(api, workbook({"Deals": [row]}))
     assert response.status_code == 422
     assert response.json()["field"] == "Actual close date"
-    assert api.get("/api/records/deals/" + sale["id"]).json()["actual_date"] == "2026-09-18"
+    assert (
+        api.get("/api/records/deals/" + sale["id"]).json()["actual_date"]
+        == "2026-09-18"
+    )
 
 
 def test_export_reports_text_that_excel_cannot_store(api):

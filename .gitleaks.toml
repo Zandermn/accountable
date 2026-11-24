@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Git-ignored local environment file and generated directories"
+paths = [
+  '''^(?:\.[/\\])?\.env$''',
+  '''(?:^|[/\\])(?:node_modules|\.venv|__pycache__|\.pytest_cache|\.ruff_cache)(?:[/\\]|$)''',
+  '''^(?:\.[/\\])?(?:\.git|\.cache|data|frontend[/\\]dist|test-results|playwright-report|tmp)(?:[/\\]|$)''',
+]
