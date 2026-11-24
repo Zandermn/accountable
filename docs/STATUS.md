@@ -29,6 +29,13 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 - The next review found the same failure in theme saves. The switch stayed disabled while the request was pending. The save now has a five-second deadline. If the browser cannot confirm the save, the app shows the previous mode and lets the user reload or retry. Playwright confirmed that reload reads the saved mode when the server completed the write before its response stalled.
 - The new Playwright regression test failed before the save fix and passed after it. The full Windows check passed with 23 Vitest tests at 84.14% line coverage, 43 pytest tests at 88.81%, and 15 Playwright tests. Gitleaks found no leaks.
 
+## Ideas for later
+
+- Add a background highlight to the Dashboard header to match Pipeline.
+- Add a background highlight to the Organizations header to match Pipeline.
+- Add a background highlight to the Contacts header to match Pipeline.
+- Add a background highlight to the Deals header to match Pipeline.
+
 ## Review policy
 
 The [review policy](REVIEW.md) defines four checks before merge, including a check against the project standards. It defines when a finding blocks the merge and covers partial workbook imports, local access to sales records, and recovery from data loss.
