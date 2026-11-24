@@ -64,6 +64,10 @@ The Codex Stop hook runs `npm run check` from the repository root before the tur
 
 GitHub Actions runs the `check` job on every branch push. Gitleaks scans the checked-out repository before the job sets up Node.js and uv. If the scan finds a secret, the job stops. After setup, the job installs the locked dependencies and runs `npm run check:quick`.
 
+## GitHub fork
+
+The local `Harness` branch was pushed to the [Harness branch on GitHub](https://github.com/Zandermn/accountable/tree/Harness) and tracks `fork/Harness`. The `fork` remote points to `Zandermn/accountable`. The `origin` remote points to the [original course repository](https://github.com/ed-donner/accountable).
+
 ## Local runtime
 
 Start the app with `npm run dev`. Open the local URL printed by Vite, normally `http://127.0.0.1:5173`. Keep the terminal open while you use the app. Press Ctrl+C to stop both servers. Startup uses the installed dependencies and local fonts.
