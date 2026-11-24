@@ -60,6 +60,12 @@ On Windows, a test commit included both formatters' fixes and preserved an unsta
 
 The Codex Stop hook runs `npm run check` from the repository root before the turn ends. A failure asks Codex to fix the errors and rerun the check. On the next stop attempt in the same turn, the hook allows the turn to end. Review and trust the Stop hook in Codex before use.
 
+## Continuous integration
+
+GitHub Actions runs the `check` job on every branch push. Gitleaks scans the checked-out repository before the job sets up Node.js and uv. If the scan finds a secret, the job stops. After setup, the job installs the locked dependencies and runs `npm run check:quick`.
+
+## Local runtime
+
 Start the app with `npm run dev`. Open the local URL printed by Vite, normally `http://127.0.0.1:5173`. Keep the terminal open while you use the app. Press Ctrl+C to stop both servers. Startup uses the installed dependencies and local fonts.
 
 The first launch fills `data/accountable.db` with sample records. Each later launch opens the saved database. Backups go in `data/backups/`. Set `ACCOUNTABLE_DB` and `ACCOUNTABLE_BACKUPS` to use other locations. Use the same settings for the app and its data commands.
