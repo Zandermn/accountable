@@ -18,7 +18,7 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 - Applied shared color tokens to the app, dialogs, Pipeline, and Dashboard charts. In Chrome, all ten route screenshots matched the previous light-mode screenshots pixel for pixel with the top bar hidden. Checked both modes, visible keyboard focus, the form dialog, and chart labels and tooltips. Edge loaded the mode saved in Chrome.
 - The lowest measured dark-mode route text contrast was 5.51:1. The light and dark top-bar mode labels measured 10.71:1 and 8.53:1. Chart axis labels measured 6.36:1 and 10.81:1, and revenue tooltip text measured 12.63:1 and 8.56:1.
 - `npm run check` passed on Windows. Vitest passed 22 tests with 83.83% line coverage. pytest passed 43 tests with 88.81% line coverage. Playwright passed 13 tests in Chrome. Gitleaks found no leaks when run with access to the installed scanner.
-- Repeated the full check and captured 28 Playwright screenshots. They show all ten routes in both modes, the organization form, the revenue tooltip, keyboard focus, both saved themes after reload, and dark mode in Edge.
+- Repeated the full check on commit `2b27795` and captured 28 Playwright screenshots. They show all ten routes in both modes, the organization form, the revenue tooltip, keyboard focus, both saved themes after reload, and dark mode in Edge. The final light-mode capture matched all ten baselines with the top bar hidden.
 
 ## Review policy
 
