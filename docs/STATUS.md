@@ -4,6 +4,7 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 
 ## Documentation organization
 
+- Recorded the dark mode intent and updated the [product specification](spec.md) for the shared theme toggle, saved preference, brand colors, and verification in both modes. Contrast fixes for existing color pairings apply only to dark mode.
 - Moved the MVP intent and plan to `docs/changes/mvp/`.
 - Made `docs/spec.md` the standalone specification for the current product, including the original customer problem.
 - Updated `AGENTS.md` to put the specification first and isolate each change's documents by branch name.
