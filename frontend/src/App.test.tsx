@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { App } from './App';
 test('refreshes an open view when the server local date changes without a write', async () => {
@@ -144,4 +144,46 @@ test('uses light after a failed read and lets the user retry', async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Retry theme' }));
   await waitFor(() => expect(toggle).toBeChecked());
   expect(screen.queryByRole('alert')).toBeNull();
+});
+
+test('opens the workspace if the theme response body stalls and ignores a late result', async () => {
+  vi.useFakeTimers();
+  try {
+    let resolveFirstRead!: (preference: { theme: string }) => void;
+    const firstRead = new Promise<{ theme: string }>((resolve) => {
+      resolveFirstRead = resolve;
+    });
+    const fetcher = mockTheme('dark').mockResolvedValueOnce({
+      ok: true,
+      json: () => firstRead,
+    });
+    render(
+      <MemoryRouter initialEntries={['/organizations']}>
+        <App />
+      </MemoryRouter>,
+    );
+    const signal = fetcher.mock.calls[0][1].signal;
+    await act(async () => vi.advanceTimersByTimeAsync(2999));
+    expect(signal?.aborted).toBe(false);
+    expect(screen.queryByRole('navigation')).toBeNull();
+
+    await act(async () => vi.advanceTimersByTimeAsync(1));
+    expect(signal?.aborted).toBe(true);
+    const toggle = screen.getByRole('switch', { name: 'Theme (dark mode)' });
+    const heading = screen.getByRole('heading', { name: 'Organizations' });
+    expect(heading).toBeVisible();
+    expect(screen.getByRole('navigation', { name: 'Main sections' })).toBeVisible();
+    expect(toggle).not.toBeChecked();
+
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Retry theme' })));
+    expect(toggle).toBeChecked();
+    expect(heading).toBeVisible();
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    await act(async () => resolveFirstRead({ theme: 'light' }));
+    expect(toggle).toBeChecked();
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+  } finally {
+    vi.useRealTimers();
+  }
 });

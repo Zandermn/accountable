@@ -119,10 +119,12 @@ export async function api<T>(
   method = 'GET',
   body?: unknown,
   dataset?: number,
+  signal?: AbortSignal,
 ): Promise<T> {
   const form = body instanceof FormData;
   const res = await fetch('/api' + path, {
     method,
+    signal,
     headers: {
       ...(!form && body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       ...(dataset !== undefined ? { 'X-Dataset': String(dataset) } : {}),

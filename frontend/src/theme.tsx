@@ -4,6 +4,8 @@ import { api, ReadState } from './data';
 type Mode = 'light' | 'dark';
 type Preference = { theme: Mode };
 const preferencePath = '/preferences/theme';
+const themeReadDeadlineMs = 3000;
+const themeSaveDeadlineMs = 5000;
 export const ThemeMode = createContext<Mode>('light');
 
 function applyTheme(theme: Mode) {
@@ -14,7 +16,7 @@ function applyTheme(theme: Mode) {
 export function Theme({ children }: { children: (control: ReactNode) => ReactNode }) {
   const [theme, setTheme] = useState<Mode>();
   const [readFailed, setReadFailed] = useState(false);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
   const [reading, setReading] = useState(true);
   const [attempt, retry] = useState(0);
@@ -26,26 +28,43 @@ export function Theme({ children }: { children: (control: ReactNode) => ReactNod
   }, []);
 
   useEffect(() => {
-    let active = true;
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    function showReadFailure() {
+      setTheme(applyTheme('light'));
+      setReadFailed(true);
+      setReading(false);
+    }
+
+    const deadline = window.setTimeout(() => {
+      controller.abort();
+      showReadFailure();
+    }, themeReadDeadlineMs);
+
     async function read() {
       try {
-        const preference = await api<Preference>(preferencePath);
-        if (active) {
-          setTheme(applyTheme(preference.theme));
-          setReadFailed(false);
-        }
+        const preference = await api<Preference>(
+          preferencePath,
+          'GET',
+          undefined,
+          undefined,
+          signal,
+        );
+        if (signal.aborted) return;
+        setTheme(applyTheme(preference.theme));
+        setReadFailed(false);
+        setReading(false);
       } catch {
-        if (active) {
-          setTheme(applyTheme('light'));
-          setReadFailed(true);
-        }
+        if (!signal.aborted) showReadFailure();
       } finally {
-        if (active) setReading(false);
+        window.clearTimeout(deadline);
       }
     }
     void read();
     return () => {
-      active = false;
+      window.clearTimeout(deadline);
+      controller.abort();
     };
   }, [attempt]);
 
@@ -60,15 +79,20 @@ export function Theme({ children }: { children: (control: ReactNode) => ReactNod
   async function toggle() {
     if (saving || reading) return;
     const next = currentTheme === 'light' ? 'dark' : 'light';
-    setSaveFailed(false);
+    const signal = AbortSignal.timeout(themeSaveDeadlineMs);
+    setSaveError('');
     setSaving(true);
     setTheme(applyTheme(next));
     try {
-      await api<Preference>(preferencePath, 'PUT', { theme: next });
+      await api<Preference>(preferencePath, 'PUT', { theme: next }, undefined, signal);
       setReadFailed(false);
     } catch {
       setTheme(applyTheme(currentTheme));
-      setSaveFailed(true);
+      setSaveError(
+        signal.aborted
+          ? 'Could not confirm the theme save. Reload to check or try again.'
+          : 'Could not save the theme. Try again.',
+      );
     } finally {
       setSaving(false);
     }
@@ -87,7 +111,7 @@ export function Theme({ children }: { children: (control: ReactNode) => ReactNod
                 disabled={reading || saving}
                 onClick={() => {
                   setReading(true);
-                  setSaveFailed(false);
+                  setSaveError('');
                   retry((count) => count + 1);
                 }}
               >
@@ -95,7 +119,7 @@ export function Theme({ children }: { children: (control: ReactNode) => ReactNod
               </button>
             </div>
           )}
-          {saveFailed && <p role="alert">Could not save the theme. Try again.</p>}
+          {saveError && <p role="alert">{saveError}</p>}
           <button
             type="button"
             className="theme-toggle"

@@ -6,6 +6,7 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 
 - Recorded the dark mode intent and updated the [product specification](spec.md) for the shared theme toggle, saved preference, brand colors, and verification in both modes. Contrast fixes for existing color pairings apply only to dark mode.
 - Added the [dark mode implementation plan](changes/dark-mode/plan.md) with work phases, risks, and verification.
+- Added the [theme read fix plan](changes/dark-mode/fixplan.md) to define a startup deadline, light-mode fallback, and regression tests.
 - Moved the MVP intent and plan to `docs/changes/mvp/`.
 - Made `docs/spec.md` the standalone specification for the current product, including the original customer problem.
 - Updated `AGENTS.md` to put the specification first and isolate each change's documents by branch name.
@@ -19,6 +20,14 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 - The lowest measured dark-mode route text contrast was 5.51:1. The light and dark top-bar mode labels measured 10.71:1 and 8.53:1. Chart axis labels measured 6.36:1 and 10.81:1, and revenue tooltip text measured 12.63:1 and 8.56:1.
 - `npm run check` passed on Windows. Vitest passed 22 tests with 83.83% line coverage. pytest passed 43 tests with 88.81% line coverage. Playwright passed 13 tests in Chrome. Gitleaks found no leaks when run with access to the installed scanner.
 - Repeated the full check on commit `2b27795` and captured 28 Playwright screenshots. They show all ten routes in both modes, the organization form, the revenue tooltip, keyboard focus, both saved themes after reload, and dark mode in Edge. The final light-mode capture matched all ten baselines with the top bar hidden.
+
+## Theme request recovery
+
+- Added a three-second deadline to startup and retry theme reads. When a read times out, the app opens in light mode and offers Retry theme. A late response cannot replace the result of a newer attempt.
+- `npm run check` passed on Windows. Vitest passed 23 tests with 84.08% line coverage. pytest passed 43 tests with 88.81% line coverage. Playwright passed 14 tests in Chrome. Gitleaks found no leaks.
+- Playwright captured both modes on all ten routes, both reloads, dark mode in Edge, and the light fallback and dark recovery. The lowest measured dark-mode route text contrast was 5.51:1. Chart axes measured 6.36:1 in light mode and 10.81:1 in dark mode. Light-mode screenshots matched the baseline with the top bar hidden. The Dashboard comparison loaded both fonts before it drew the charts.
+- The next review found the same failure in theme saves. The switch stayed disabled while the request was pending. The save now has a five-second deadline. If the browser cannot confirm the save, the app shows the previous mode and lets the user reload or retry. Playwright confirmed that reload reads the saved mode when the server completed the write before its response stalled.
+- The new Playwright regression test failed before the save fix and passed after it. The full Windows check passed with 23 Vitest tests at 84.14% line coverage, 43 pytest tests at 88.81%, and 15 Playwright tests. Gitleaks found no leaks.
 
 ## Review policy
 

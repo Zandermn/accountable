@@ -53,6 +53,47 @@ test('defaults to light and restores keyboard changes after a reload', async ({ 
   await expectTheme(page, 'light');
 });
 
+test('opens records in light mode when the initial theme request stalls', async ({ page }) => {
+  const path = '/api/preferences/theme';
+  const saved = await page.request.put(path, { data: { theme: 'dark' } });
+  await expect(saved).toBeOK();
+  await page.route('**' + path, () => {}, { times: 1 });
+
+  await page.goto('/organizations');
+  const firstRecord = page.locator('tbody a').first();
+  await expect(firstRecord).toBeVisible({ timeout: 10000 });
+  await expectTheme(page, 'light');
+  await expect(page.getByRole('alert')).toHaveText('Could not load the theme.');
+
+  await page.getByRole('button', { name: 'Retry theme' }).click();
+  await expectTheme(page, 'dark');
+  await expect(firstRecord).toBeVisible();
+  await expect(page).toHaveURL(/\/organizations$/);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('restores the previous theme and allows retry when saving stalls', async ({ page }) => {
+  await page.goto('/organizations');
+  await expectTheme(page, 'light');
+  await page.route('**/api/preferences/theme', () => {}, { times: 1 });
+
+  await themeSwitch(page).click();
+  await expectTheme(page, 'dark');
+  await expect(themeSwitch(page)).toHaveAttribute('aria-disabled', 'true');
+
+  await expect(page.getByRole('alert')).toHaveText(/Could not confirm the theme save/, {
+    timeout: 10000,
+  });
+  await expectTheme(page, 'light');
+  await expect(page.locator('tbody a').first()).toBeVisible();
+  await themeSwitch(page).click();
+  await expect(themeSwitch(page)).toHaveAttribute('aria-disabled', 'false');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+
+  await page.reload();
+  await expectTheme(page, 'dark');
+});
+
 test('shares the saved mode with a fresh browser context and all routes', async ({
   page,
   browser,
