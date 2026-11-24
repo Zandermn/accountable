@@ -8,6 +8,7 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 - Made `docs/spec.md` the standalone specification for the current product, including the original customer problem.
 - Updated `AGENTS.md` to put the specification first and isolate each change's documents by branch name.
 - Updated `docs/REVIEW.md` to require findings for code that the specification does not describe.
+- Added [the harness improvement checklist](IMPROVE.md) for Deploy, after the review fixes and before the merge.
 
 ## Review policy
 
