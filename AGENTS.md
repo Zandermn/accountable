@@ -14,6 +14,8 @@ Each change has its own `docs/changes/<branch name>/` folder with its `intent.md
 
 Update `docs/STATUS.md` when you finish a piece of work
 
+Keep all `.env` files unchanged. Ask the user to make any necessary changes to those files.
+
 ## Tests
 
 Run `npm run check` from the repository root before you report a code change as complete. It checks formatting, lint rules, frontend and backend types, and secrets, then runs `npm test`. Use `npm run check:quick` for checks during development without the end-to-end tests.

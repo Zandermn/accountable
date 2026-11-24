@@ -1,0 +1,15 @@
+pre-commit:
+  piped: true
+  jobs:
+    - name: prettier
+      root: frontend/
+      run: npm exec --no -- prettier --write --ignore-unknown -- {staged_files}
+      stage_fixed: true
+    - name: ruff-format
+      glob:
+        - "backend/*.{py,pyi}"
+        - "backend/**/*.{py,pyi}"
+      run: node scripts/python.mjs -m ruff format --force-exclude -- {staged_files}
+      stage_fixed: true
+    - name: lint-types-and-secrets
+      run: npm run check:staged

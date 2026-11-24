@@ -12,6 +12,7 @@
     "dev": "node scripts/dev.mjs",
     "check": "node scripts/check.mjs",
     "check:quick": "node scripts/check.mjs --quick",
+    "check:staged": "node scripts/check.mjs --staged",
     "format": "node scripts/check.mjs --format",
     "test": "node scripts/test.mjs",
     "test:ui": "npm run test --workspace frontend",
@@ -23,6 +24,7 @@
     "seed": "node scripts/python.mjs -m backend.data_commands seed"
   },
   "devDependencies": {
-    "@playwright/test": "^1.55.0"
+    "@playwright/test": "^1.55.0",
+    "lefthook": "^2.2.2"
   }
 }

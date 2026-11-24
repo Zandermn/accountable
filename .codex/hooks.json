@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Bash|apply_patch|mcp__filesystem__.*)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .codex/hooks/protect-env.mjs",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/.codex/hooks/check-on-stop.mjs\"",
+            "commandWindows": "node (Join-Path (git rev-parse --show-toplevel) '.codex/hooks/check-on-stop.mjs')",
+            "statusMessage": "Running npm run check",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  }
+}

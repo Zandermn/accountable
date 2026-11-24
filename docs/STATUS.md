@@ -52,6 +52,14 @@ uv sync --locked
 npm ci
 ```
 
+The Lefthook package installs the Git hooks during `npm ci`. To install the hooks again, run `npx --no-install lefthook install`. Before each commit, Lefthook formats staged frontend and Python files, stages the formatting changes, runs lint and type checks, and scans the staged changes with Gitleaks. It skips the test suites.
+
+The project also defines a Codex hook for `.env` files. In a trusted project, review and trust the hook in Codex Settings > Hooks or with `/hooks` in the CLI. The hook blocks matching patch, shell, and filesystem tool calls that name a `.env` path. It checks tool arguments, so it can miss paths that a script computes at run time.
+
+On Windows, a test commit included both formatters' fixes and preserved an unstaged edit. It ran in about seven seconds and skipped the test suites. Separate test commits failed on a staged fake secret and on lint and type errors. Codex listed the project hook. The hook script denied seven test requests that named `.env` files and allowed three other requests.
+
+The Codex Stop hook runs `npm run check` from the repository root before the turn ends. A failure asks Codex to fix the errors and rerun the check. On the next stop attempt in the same turn, the hook allows the turn to end. Review and trust the Stop hook in Codex before use.
+
 Start the app with `npm run dev`. Open the local URL printed by Vite, normally `http://127.0.0.1:5173`. Keep the terminal open while you use the app. Press Ctrl+C to stop both servers. Startup uses the installed dependencies and local fonts.
 
 The first launch fills `data/accountable.db` with sample records. Each later launch opens the saved database. Backups go in `data/backups/`. Set `ACCOUNTABLE_DB` and `ACCOUNTABLE_BACKUPS` to use other locations. Use the same settings for the app and its data commands.
