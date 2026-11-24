@@ -25,7 +25,7 @@ if (!format) {
   runStep('ty', python, ['-m', 'ty', 'check', 'backend']);
   runStep('Gitleaks', 'gitleaks', [
     ...(staged ? ['git', '--staged'] : ['dir']),
-    '--config', '.gitleaks.toml', '--redact=100', '--no-banner', '.',
+    '--config', '.gitleaks.toml', '--redact=100', '--verbose', '--no-color', '--no-banner', '.',
   ]);
 }
 

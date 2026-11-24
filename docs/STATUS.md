@@ -52,7 +52,7 @@ uv sync --locked
 npm ci
 ```
 
-The Lefthook package installs the Git hooks during `npm ci`. To install the hooks again, run `npx --no-install lefthook install`. Before each commit, Lefthook formats staged frontend and Python files, stages the formatting changes, runs lint and type checks, and scans the staged changes with Gitleaks. It skips the test suites.
+The Lefthook package installs the Git hooks during `npm ci`. To install the hooks again, run `npx --no-install lefthook install`. Before each commit, Lefthook formats staged frontend and Python files, stages the formatting changes, runs lint and type checks, and scans the staged changes with Gitleaks. When Gitleaks detects a secret, it reports the file and line number and redacts the secret value. The hook skips the test suites.
 
 The project also defines a Codex hook for `.env` files. In a trusted project, review and trust the hook in Codex Settings > Hooks or with `/hooks` in the CLI. The hook blocks matching patch, shell, and filesystem tool calls that name a `.env` path. It checks tool arguments, so it can miss paths that a script computes at run time.
 
@@ -90,7 +90,7 @@ The first launch fills `data/accountable.db` with sample records. Each later lau
 
 Use **Data** to download the workbook template, preview an import, export active sales records, or delete a backup. Backup deletion requires two confirmations. Use **Trash** to restore an individual record.
 
-Gitleaks uses its default rules and scans the current working tree, including untracked source files. The scan allows the Git-ignored root `.env` file and excludes generated files in dependency, cache, build, local data, and test output directories.
+Gitleaks scans the current working tree, including untracked source files. It uses its default rules and a project rule that also catches shorter OpenAI project key patterns. The scan allows the Git-ignored root `.env` file and excludes generated files in dependency, cache, build, local data, and test output directories.
 
 `tsc` checks frontend types and `ty` checks backend Python types. Vitest and pytest each require at least 80% line coverage of their application code. Frontend tests cover Dashboard follow-ups, record details, Trash, workbook import, deal notes, and reopening closed deals.
 

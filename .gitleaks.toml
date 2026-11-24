@@ -1,6 +1,13 @@
 [extend]
 useDefault = true
 
+[[rules]]
+id = "openai-project-key-like"
+description = "OpenAI project key or a key-shaped value with the same prefix"
+regex = '''\b(sk-proj-[A-Za-z0-9_-]{40,})(?:[^A-Za-z0-9_-]|$)'''
+secretGroup = 1
+keywords = ["sk-proj-"]
+
 [[allowlists]]
 description = "Git-ignored local environment file and generated directories"
 paths = [
