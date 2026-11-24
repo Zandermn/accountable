@@ -7,6 +7,7 @@ from sqlalchemy import select
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.api.backups import router as backup_routes
+from backend.api.preferences import router as preference_routes
 from backend.api.records import router as record_routes
 from backend.api.sales import router as sales_routes
 from backend.api.workbooks import router as workbook_routes
@@ -30,6 +31,7 @@ def create_app(database=None, seed=True):
     app.include_router(sales_routes)
     app.include_router(workbook_routes)
     app.include_router(backup_routes)
+    app.include_router(preference_routes)
 
     @app.exception_handler(Problem)
     async def handle_problem(request, error):

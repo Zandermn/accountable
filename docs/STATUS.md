@@ -12,6 +12,14 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 - Updated `docs/REVIEW.md` to require findings for code that the specification does not describe.
 - Added [the harness improvement checklist](IMPROVE.md) for Deploy, after the review fixes and before the merge.
 
+## Dark mode on Windows (2026-11-24)
+
+- Added a shared Light and Dark switch. The app starts in light mode by default and reads the saved choice from SQLite before it shows the workspace. The database migration preserves existing records. Theme saves leave the sales revision unchanged. Backup load and sample reset keep the active theme.
+- Applied shared color tokens to the app, dialogs, Pipeline, and Dashboard charts. In Chrome, all ten route screenshots matched the previous light-mode screenshots pixel for pixel with the top bar hidden. Checked both modes, visible keyboard focus, the form dialog, and chart labels and tooltips. Edge loaded the mode saved in Chrome.
+- The lowest measured dark-mode route text contrast was 5.51:1. The light and dark top-bar mode labels measured 10.71:1 and 8.53:1. Chart axis labels measured 6.36:1 and 10.81:1, and revenue tooltip text measured 12.63:1 and 8.56:1.
+- `npm run check` passed on Windows. Vitest passed 22 tests with 83.83% line coverage. pytest passed 43 tests with 88.81% line coverage. Playwright passed 13 tests in Chrome. Gitleaks found no leaks when run with access to the installed scanner.
+- Repeated the full check and captured 28 Playwright screenshots. They show all ten routes in both modes, the organization form, the revenue tooltip, keyboard focus, both saved themes after reload, and dark mode in Edge.
+
 ## Review policy
 
 The [review policy](REVIEW.md) defines four checks before merge, including a check against the project standards. It defines when a finding blocks the merge and covers partial workbook imports, local access to sales records, and recovery from data loss.

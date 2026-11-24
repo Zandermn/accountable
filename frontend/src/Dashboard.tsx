@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Chart as ChartJS,
@@ -19,10 +19,12 @@ import {
   recordPath,
   Session,
   ShortDate,
+  stages,
   useRead,
   type Row,
 } from './data';
-import { colors, Stats, type Totals } from './Sales';
+import { stageColors, Stats, type Totals } from './Sales';
+import { ThemeMode } from './theme';
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -42,6 +44,12 @@ type Report = {
   recent: Item[];
 };
 function Chart({ months, revenue }: { months: Month[]; revenue?: boolean }) {
+  // Read the active CSS colors on each theme change. Canvas cannot resolve CSS variables.
+  useContext(ThemeMode);
+  const root = getComputedStyle(document.documentElement);
+  const color = (token: string) => root.getPropertyValue(token).trim();
+  const series = color('--success-line');
+  const tooltipText = color('--chart-tooltip-text');
   const Component = revenue ? Line : Bar,
     name = revenue ? 'Won revenue' : 'Deals won';
   const labels = months.map((m) =>
@@ -52,7 +60,7 @@ function Chart({ months, revenue }: { months: Month[]; revenue?: boolean }) {
     ? Math.max(10000, Math.ceil(Math.max(...values) / 30000) * 10000)
     : Math.max(1, Math.ceil(Math.max(...values) / 3));
   const ticks = {
-    color: '#46646c',
+    color: color('--muted'),
     font: { family: '"JetBrains Mono", Consolas, monospace', size: 10 },
   };
   return (
@@ -70,9 +78,9 @@ function Chart({ months, revenue }: { months: Month[]; revenue?: boolean }) {
               {
                 label: name,
                 data: values,
-                backgroundColor: revenue ? '#d9f8ef' : '#FFC145',
-                borderColor: '#08775b',
-                pointBackgroundColor: '#08775b',
+                backgroundColor: color(revenue ? '--selected' : '--gold'),
+                borderColor: series,
+                pointBackgroundColor: series,
                 borderWidth: revenue ? 2.5 : 0,
                 fill: !!revenue,
                 borderRadius: 5,
@@ -83,13 +91,22 @@ function Chart({ months, revenue }: { months: Month[]; revenue?: boolean }) {
           options={{
             animation: false,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: color('--chart-tooltip'),
+                titleColor: tooltipText,
+                bodyColor: tooltipText,
+                footerColor: tooltipText,
+                multiKeyBackground: tooltipText,
+              },
+            },
             scales: {
               x: { offset: true, grid: { display: false }, border: { display: false }, ticks },
               y: {
                 beginAtZero: true,
                 max: step * 3,
-                grid: { color: '#e3ecee', drawTicks: false },
+                grid: { color: color('--line'), drawTicks: false },
                 border: { display: false },
                 ticks: {
                   ...ticks,
@@ -152,7 +169,7 @@ export function Dashboard() {
               </div>
               <p className="muted">Value of deals that reached each stage</p>
               <div className="funnel-rows">
-                {Object.entries(report.funnel).map(([stage, v], i) => (
+                {Object.entries(report.funnel).map(([stage, v]) => (
                   <div key={stage}>
                     <div className="funnel-key">
                       {stage}
@@ -161,10 +178,13 @@ export function Dashboard() {
                     <div className="funnel-track">
                       <div
                         className="funnel-fill"
-                        style={{
-                          width: (v / Math.max(1, ...Object.values(report.funnel))) * 100 + '%',
-                          background: colors[i],
-                        }}
+                        style={
+                          {
+                            '--size':
+                              (v / Math.max(1, ...Object.values(report.funnel))) * 100 + '%',
+                            '--stage': stageColors[stages.indexOf(stage)],
+                          } as CSSProperties
+                        }
                       />
                     </div>
                   </div>

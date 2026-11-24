@@ -1,12 +1,21 @@
+import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Dashboard } from './Dashboard';
 import { Session } from './data';
+import { Theme } from './theme';
 
+const charts = vi.hoisted(() => ({ bar: vi.fn(), line: vi.fn() }));
 vi.mock('react-chartjs-2', () => ({
-  Bar: ({ 'aria-label': label }: { 'aria-label': string }) => <canvas aria-label={label} />,
-  Line: ({ 'aria-label': label }: { 'aria-label': string }) => <canvas aria-label={label} />,
+  Bar: (props: { 'aria-label': string }) => {
+    charts.bar(props);
+    return <canvas aria-label={props['aria-label']} />;
+  },
+  Line: (props: { 'aria-label': string }) => {
+    charts.line(props);
+    return <canvas aria-label={props['aria-label']} />;
+  },
 }));
 afterEach(() => vi.unstubAllGlobals());
 
@@ -81,4 +90,74 @@ test('shows the monthly figures, links to activity owners, and retries a failed 
     headers: { 'Content-Type': 'application/json', 'X-Dataset': '7' },
     body: '{"done":true}',
   });
+});
+
+test('switches chart colors while preserving the data and monthly values', async () => {
+  const styles = readFileSync('src/style.css', 'utf8');
+  const report = {
+    totals: { count: 1, value: 10000, expected: 2500 },
+    funnel: { New: 10000 },
+    months: [{ month: '2026-05', wins: 2, revenue: 32500 }],
+    followups: [],
+    recent: [],
+  };
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (path: string, options: RequestInit) => ({
+      ok: true,
+      json: async () =>
+        path === '/api/dashboard' ? report : { theme: options.method === 'PUT' ? 'dark' : 'light' },
+    })),
+  );
+  render(
+    <MemoryRouter>
+      <style>{styles}</style>
+      <Theme>
+        {(control) => (
+          <>
+            {control}
+            <Dashboard />
+          </>
+        )}
+      </Theme>
+    </MemoryRouter>,
+  );
+
+  await screen.findByLabelText('Won revenue by month');
+  const monthlyValues = () =>
+    screen.getAllByText('Monthly values').map((summary) => summary.parentElement?.textContent);
+  const lightValues = monthlyValues();
+  expect(lightValues[0]).toContain('US$325.00');
+  const lightLine = charts.line.mock.lastCall?.[0];
+  const lightBar = charts.bar.mock.lastCall?.[0];
+  expect(lightLine.options.scales.x.ticks.color).toBe('#46646c');
+  expect(lightLine.data.datasets[0]).toMatchObject({
+    borderColor: '#08775b',
+    data: [325],
+  });
+  expect(lightBar.data.datasets[0]).toMatchObject({ backgroundColor: '#ffc145', data: [2] });
+
+  const toggle = screen.getByRole('switch', { name: 'Theme (dark mode)' });
+  fireEvent.click(toggle);
+  await waitFor(() => expect(toggle).toHaveAttribute('aria-disabled', 'false'));
+  const darkLine = charts.line.mock.lastCall?.[0];
+  const darkBar = charts.bar.mock.lastCall?.[0];
+  expect(darkLine.options.scales.x.ticks.color).toBe('#a7bec5');
+  expect(darkLine.options.scales.y.grid.color).toBe('#34545e');
+  expect(darkLine.options.plugins.tooltip.bodyColor).toBe('#cdd8db');
+  expect(darkLine.data.datasets[0]).toMatchObject({
+    backgroundColor: '#103b32',
+    borderColor: '#56e6ba',
+    pointBackgroundColor: '#56e6ba',
+  });
+  expect(darkBar.data.datasets[0]).toMatchObject({ backgroundColor: '#ffc145' });
+  expect(darkBar.options.scales.x.ticks.color).toBe('#a7bec5');
+  for (const [light, dark] of [
+    [lightLine, darkLine],
+    [lightBar, darkBar],
+  ]) {
+    expect(dark.data.labels).toEqual(light.data.labels);
+    expect(dark.data.datasets[0].data).toEqual(light.data.datasets[0].data);
+  }
+  expect(monthlyValues()).toEqual(lightValues);
 });

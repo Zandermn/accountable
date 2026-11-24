@@ -140,6 +140,13 @@ tickets = Table(
     Column("backup", String),
 )
 TABLES = {t.name: t for t in (organizations, contacts, deals, activities)}
+app_preferences = Table(
+    "app_preferences",
+    schema,
+    Column("id", Integer, primary_key=True),
+    Column("theme", String, nullable=False),
+    CheckConstraint("id = 1 AND theme IN ('light', 'dark')"),
+)
 
 
 class Problem(Exception):
@@ -176,13 +183,16 @@ class Store:
             if version is None:
                 schema.create_all(conn)
                 conn.execute(
-                    insert(state).values(id=1, schema_version=1, dataset=1, revision=0)
+                    insert(state).values(id=1, schema_version=2, dataset=1, revision=0)
                 )
                 if seed:
                     from backend.seed import sample
 
                     sample(conn)
-            elif version != 1:
+            elif version == 1:
+                app_preferences.create(conn)
+                conn.execute(update(state).values(schema_version=2))
+            elif version != 2:
                 raise Problem("Unsupported database version.")
 
     def read(self):

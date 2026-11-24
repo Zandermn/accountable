@@ -22,7 +22,14 @@ export type Board = {
   totals: Totals;
   columns: Record<string, { cards: Row[]; totals: Totals }>;
 };
-export const colors = ['#06D6A0', '#FFC145', '#F78C6B', '#118AB2', '#EF476F', '#CDD8DB'];
+export const stageColors = [
+  'var(--green)',
+  'var(--gold)',
+  'var(--coral)',
+  'var(--blue)',
+  'var(--pink)',
+  'var(--neutral)',
+];
 export function Stats({ totals, board = false }: { totals: Totals; board?: boolean }) {
   return (
     <div className={board ? 'board-totals' : 'stats'}>
@@ -301,7 +308,7 @@ export function SalesWorkspace({
                       className="lane"
                       aria-label={stage}
                       key={stage}
-                      style={{ '--stage': colors[i] } as CSSProperties}
+                      style={{ '--stage': stageColors[i] } as CSSProperties}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();

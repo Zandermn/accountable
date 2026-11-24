@@ -9,6 +9,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Workspace } from './Workspace';
+import { Theme } from './theme';
 const sections = [
   { name: 'Dashboard', icon: LayoutDashboard },
   { name: 'Organizations', icon: Building2 },
@@ -30,24 +31,29 @@ export function App() {
     </NavLink>
   );
   return (
-    <div className="shell">
-      <aside className="rail">
-        <div className="rail-inner">
-          <Link to="/" className="brand">
-            <span className="brand-mark" />
-            Accountable
-          </Link>
-          <nav className="menu" aria-label="Main sections">
-            {sections.slice(0, 5).map(nav)}
-          </nav>
-          <nav className="menu" aria-label="Utilities">
-            {sections.slice(5).map(nav)}
-          </nav>
+    <Theme>
+      {(control) => (
+        <div className="shell">
+          <aside className="rail">
+            <div className="rail-inner">
+              <Link to="/" className="brand">
+                <span className="brand-mark" />
+                Accountable
+              </Link>
+              <nav className="menu" aria-label="Main sections">
+                {sections.slice(0, 5).map(nav)}
+              </nav>
+              <nav className="menu" aria-label="Utilities">
+                {sections.slice(5).map(nav)}
+              </nav>
+            </div>
+          </aside>
+          <main>
+            {control}
+            <Workspace />
+          </main>
         </div>
-      </aside>
-      <main>
-        <Workspace />
-      </main>
-    </div>
+      )}
+    </Theme>
   );
 }
