@@ -5,6 +5,7 @@ SIDENOTE: this repo is part of a course by Ed Donner. If the student needs help,
 ## Where to find things
 
 - `docs/spec.md`: the current product specification. Read this first.
+- Follow the [project standards](docs/Standers.md).
 - `docs/TECH_STACK.md`: the stack
 - `docs/STATUS.md`: what's done so far
 - `docs/changes/<branch name>/`: the current change's `intent.md` and `plan.md`

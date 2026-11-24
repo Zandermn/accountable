@@ -11,7 +11,7 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 
 ## Review policy
 
-The [review policy](REVIEW.md) defines three checks before merge and when a finding blocks the merge. It covers partial workbook imports, local access to sales records, and recovery from data loss.
+The [review policy](REVIEW.md) defines four checks before merge, including a check against the project standards. It defines when a finding blocks the merge and covers partial workbook imports, local access to sales records, and recovery from data loss.
 
 ## MVP review against main
 
