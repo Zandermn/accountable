@@ -97,7 +97,9 @@ The Codex Stop hook runs `npm run check` from the repository root before the tur
 
 ## Continuous integration
 
-GitHub Actions runs the `check` job on every branch push. Gitleaks scans the checked-out repository before the job sets up Node.js and uv. If the scan finds a secret, the job stops. After setup, the job installs the locked dependencies and runs `npm run check:quick`.
+The [GitHub Actions workflow](../.github/workflows/ci.yml) runs the `check` job on every branch push. Gitleaks scans the checked-out repository first. If the scan finds a secret, the job stops. The job then sets up Node.js and uv, installs the locked dependencies, and runs `npm run check:quick`. This command checks formatting, lint rules, types, and secrets, then runs Vitest and pytest. CI skips the Playwright end-to-end tests.
+
+Run `npm run check` locally for all checks and all three test suites, including Playwright in Chrome.
 
 ## GitHub fork
 
