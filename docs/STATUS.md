@@ -2,6 +2,10 @@
 
 The local CRM is implemented. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app keeps records and board order in SQLite.
 
+## Multi-user intent
+
+- Completed the [multi-user intent](changes/multi-user/intent.md) for shared records, sign-in, search, and the user menu. It keeps spreadsheet import and export, retires local backups and data commands, defines what the creator label shows, and saves theme preferences per account with System as the default.
+
 ## Documentation organization
 
 - Recorded the dark mode intent and updated the [product specification](spec.md) for the shared theme toggle, saved preference, brand colors, and verification in both modes. Contrast fixes for existing color pairings apply only to dark mode.
@@ -18,6 +22,8 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 - `reviewer` reads branch changes and reports Important findings and Nits under the [review policy](REVIEW.md). Its instructions restrict it to read-only commands.
 - `ui-check` uses Playwright MCP to check the running app in light and dark modes against the product spec and brand skill. It saves screenshots in the Git-ignored `.playwright-mcp/` directory.
 - The project registers Playwright MCP in `.codex/config.toml`. Open a new Codex session in the trusted project to load the configuration. Start the app with `npm run dev` before you ask Codex to use `ui-check`.
+- Accountable registers the read-only Supabase MCP server in `.codex/config.toml`. Sign in to Supabase from the project before you use the server.
+- The local Kimi Code configuration in `.kimi-code/mcp.json` uses the same read-only Supabase server. In a new Kimi Code session, run `/mcp-config login supabase` to sign in.
 - On 2026-11-25, `ui-check` found no issues on Dashboard or Pipeline in Chrome at 1440 × 900 in either theme. It restored the saved Dark preference, and both app servers stopped after the check.
 - The review of commit `0b04e3b` found that a theme save can still complete on the server after the browser times out. If that save finishes after a newer save, it can overwrite the newer choice. The finding came from code inspection.
 
