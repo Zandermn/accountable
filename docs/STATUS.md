@@ -8,6 +8,7 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 
 ## Documentation organization
 
+- Split the product specification into 12 area files and kept the summary and index at [docs/spec.md](spec.md). Updated the project instructions and review policy to use the affected area files.
 - Recorded the dark mode intent and updated the [product specification](spec.md) for the shared theme toggle, saved preference, brand colors, and verification in both modes. Contrast fixes for existing color pairings apply only to dark mode.
 - Added the [dark mode implementation plan](changes/dark-mode/plan.md) with work phases, risks, and verification.
 - Added the [theme read fix plan](changes/dark-mode/fixplan.md) to define a startup deadline, light-mode fallback, and regression tests.

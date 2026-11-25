@@ -8,10 +8,10 @@ Make a separate pass over every change for each of these:
 
 - **Bugs:** the code does what it's meant to, including when something goes wrong.
 - **Security:** no secrets or personal data are exposed, and nobody can do what they shouldn't.
-- **Matches spec.md and plan.md:** the change does what those documents say, with nothing missing and nothing extra.
+- **Spec and plan:** read the [product summary and index](spec.md) first, then the [area specifications](specs/) affected by the change. Check that the change meets the requirements in those files and in the current plan. Check for missing requirements and extra behavior.
 - Check the change against the [project standards](Standers.md).
 
-Flag any code that `docs/spec.md` doesn't describe.
+Check that the change updates the product summary and all affected area specifications as needed. Flag any code that neither the product summary nor the applicable area specifications describe.
 
 ## Important
 
