@@ -72,10 +72,11 @@ Each of the seven sidebar links has a distinct Lucide icon and a visible text la
 
 ## Technology tutorial
 
-- Added the [beginner HTML technology course](techbreakdown/index.html) in `docs/techbreakdown/`. Nine lessons build from web and programming basics to the frontend, backend, data, architecture, tests, and guided practice. A quick reference covers the stack, commands, files, API routes, and glossary.
-- Made the course question-led. Its opening explains why understanding the app matters, and 74 practical problem-and-answer prompts introduce the course topics. Each instructional section presents a problem before the concept that solves it.
-- The 11-page course works offline with local fonts and optional copy-code controls. Checked all 334 local file and anchor references and every question-led section. Chrome passed desktop and mobile rendering, navigation, console, external-request, and contrast checks.
-- `npm test` passed after the documentation changes: 8 Vitest, 31 pytest, and 10 Playwright tests.
+- Expanded the [HTML technology and agent workflow course](techbreakdown/index.html) to 12 lessons in four stages: foundations, application layers, professional agent-led development, and a guided capstone. The 14 pages include the course home, quick reference, and lessons on specification-driven changes, coding agents, debugging, review, and delivery.
+- Updated the technical lessons for schema version 2, saved light and dark preferences, request deadlines, Gitleaks, Lefthook, coverage gates, CI, and the current change-document layout. Removed links to superseded root-level intent and plan documents.
+- Made the course question-led with 88 practical problem-and-answer prompts. Examples trace real requirements to source and tests, including stage changes, workbook recovery, stale actions, and uncertain theme saves.
+- The course works offline with local fonts and optional copy-code controls. Checked 467 local file links, 157 anchors, unique IDs, navigation, current-page markers, and question-led instructional sections. Chrome passed 28 desktop and mobile renders with no horizontal overflow, console errors, or external requests.
+- `npm run check` passed on Windows after the course update. Vitest passed 23 tests with 84.14% line coverage, pytest passed 43 tests with 88.81% line coverage, and Playwright passed 15 tests. Gitleaks found no leaks.
 
 ## One-time setup
 
