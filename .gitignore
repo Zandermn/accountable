@@ -58,7 +58,9 @@ supabase/.branches/
 # Coding agents' personal settings
 .claude/settings.local.json
 .github/copilot/settings.local.json
-.kimi-code/
+.kimi-code/*
+!.kimi-code/agents/
+!.kimi-code/agents/**
 .pi/
 
 # Claude Code's worktrees, one folder for each parallel session

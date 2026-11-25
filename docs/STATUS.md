@@ -13,6 +13,14 @@ The local CRM is implemented. It includes Dashboard, Organizations, Contacts, De
 - Updated `docs/REVIEW.md` to require findings for code that the specification does not describe.
 - Added [the harness improvement checklist](IMPROVE.md) for Deploy, after the review fixes and before the merge.
 
+## Codex project agents
+
+- `reviewer` reads branch changes and reports Important findings and Nits under the [review policy](REVIEW.md). Its instructions restrict it to read-only commands.
+- `ui-check` uses Playwright MCP to check the running app in light and dark modes against the product spec and brand skill. It saves screenshots in the Git-ignored `.playwright-mcp/` directory.
+- The project registers Playwright MCP in `.codex/config.toml`. Open a new Codex session in the trusted project to load the configuration. Start the app with `npm run dev` before you ask Codex to use `ui-check`.
+- On 2026-11-25, `ui-check` found no issues on Dashboard or Pipeline in Chrome at 1440 × 900 in either theme. It restored the saved Dark preference, and both app servers stopped after the check.
+- The review of commit `0b04e3b` found that a theme save can still complete on the server after the browser times out. If that save finishes after a newer save, it can overwrite the newer choice. The finding came from code inspection.
+
 ## Dark mode on Windows (2026-11-24)
 
 - Added a shared Light and Dark switch. The app starts in light mode by default and reads the saved choice from SQLite before it shows the workspace. The database migration preserves existing records. Theme saves leave the sales revision unchanged. Backup load and sample reset keep the active theme.
@@ -130,6 +138,10 @@ The Dashboard now shows the board below the charts. Opening a card there keeps t
 The Pipeline totals measured 36 pixels high in both the app and the mockup. The deal panel fit beside the board at 1440 and 1280 pixels wide. At 1100 pixels, it moved below the board.
 
 The production build passed. The final `npm test` run passed all 49 tests, including the linked-record counts and the Dashboard card selection and focus checks.
+
+## Browser test startup on Windows
+
+The Playwright fixture selects free test ports from `20000` through `29999`. Windows can assign ports that Fetch and Chrome block when the fixture asks the operating system for any free port. A startup failure now reports both ports and the app startup log.
 
 ## Test runner verification on Windows (2026-11-23)
 
