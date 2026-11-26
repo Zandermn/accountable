@@ -15,6 +15,7 @@ The multi-user CRM includes Dashboard, Organizations, Contacts, Deals, Pipeline,
 
 - Fixed overlapping Dashboard follow-ups, missing or incorrect separators on Dashboard and deal notes, and low contrast in the Light search field. The tests reproduced each display problem before the fix. Chrome now checks desktop and laptop widths and measures placeholder contrast in both themes.
 - The startup review now checks the documented defaults and first user action. The browser fixture supplies a web port, so it did not catch the missing port on `npm run dev:test`.
+- Fixed a CI navigation failure after a test app restart. Vite could reload the old page while Playwright was opening it. The restart fixture now unloads all test app tabs before shutdown. The two-account test checks both tabs and verifies that the record is still available after restart.
 - The browser tests find each directory search by its accessible name.
 - The read-only Supabase audit found that row-level security is off on the private app tables. The two client roles have no direct grants on those tables. The security advisor reported that the leaked-password check is off.
 - Replaced the custom migration code with Alembic. An existing database upgraded to schema version 3 and retained its records in both SQLite and local PostgreSQL. The production build served deep links, fonts, and protected data to two test accounts across two starts on local PostgreSQL. The local check used a test sign-in service.

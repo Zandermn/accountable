@@ -78,6 +78,7 @@ test('two accounts see shared records and the original creator after edit and re
     await page.goto('/organizations/org-0');
     await expect(page.getByText('Sample data')).toBeVisible();
     await app.restart();
+    expect([page.url(), other.url()]).toEqual(['about:blank', 'about:blank']);
     await page.goto(detailURL);
     await expect(page.getByRole('heading', { name: 'Updated partner' })).toBeVisible();
     await expect(page.getByText('Alex Morgan')).toBeVisible();

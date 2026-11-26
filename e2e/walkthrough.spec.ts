@@ -66,7 +66,6 @@ test('offline salesperson walkthrough at desktop and laptop sizes', async ({
   await p.getByLabel('Name *').fill('Offline buyer');
   await p.getByText('Save', { exact: true }).click();
   await expect(p.getByRole('link', { name: 'Offline buyer' })).toBeVisible();
-  await p.goto('about:blank');
   await app.restart();
   await p.goto('/organizations');
   await expect(p.getByRole('link', { name: 'Offline buyer' })).toBeVisible();

@@ -55,7 +55,7 @@ test('moves cards by drag and keyboard, preserves a draft, focus and order', asy
     'Regional launch',
   ]);
   await app.restart();
-  await p.reload();
+  await p.goto('/pipeline');
   await expect(lane('Proposal').locator('.deal-title')).toHaveText([
     'Annual supply agreement',
     'Regional launch',
@@ -93,7 +93,7 @@ test('demo, saved activities, notes and live Dashboard updates', async ({ page: 
   await p.getByText('Save note').click();
   await expect(p.locator('.note-text')).toHaveText('Buyer signed');
   await app.restart();
-  await p.reload();
+  await p.goto('/deals/deal-3');
   await expect(p.locator('.note-text')).toHaveText('Buyer signed');
   await p.getByText('Remove note').click();
   await p.getByRole('dialog').getByText('Delete', { exact: true }).click();
@@ -122,7 +122,7 @@ test('demo, saved activities, notes and live Dashboard updates', async ({ page: 
   await p.getByRole('button', { name: 'Mark done: Confirm the clinic delivery' }).click();
   await expect(tasks).not.toContainText('Confirm the clinic delivery');
   await app.restart();
-  await p.reload();
+  await p.goto('/');
   await expect(tasks).toBeVisible();
   await expect(tasks).not.toContainText('Confirm the clinic delivery');
   await p.goto('/trash');

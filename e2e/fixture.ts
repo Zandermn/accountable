@@ -45,9 +45,10 @@ export const test = base.extend<{
   baseURL: async ({ app }, use) =>
     use("http://127.0.0.1:" + app.env.ACCOUNTABLE_PORT),
   app: [
-    async ({}, use) => {
+    async ({ browser }, use) => {
       const webPort = await freePort();
       const apiPort = await freePort(webPort);
+      const origin = "http://127.0.0.1:" + webPort;
       const dir = await mkdtemp(join(tmpdir(), "accountable-e2e-"));
       const env = {
         ...process.env,
@@ -73,9 +74,7 @@ export const test = base.extend<{
                 if (child.exitCode !== null) {
                   throw new Error(`App exited with code ${child.exitCode}`);
                 }
-                return fetch(
-                  "http://127.0.0.1:" + env.ACCOUNTABLE_PORT + "/health",
-                )
+                return fetch(origin + "/health")
                   .then((r) => r.ok)
                   .catch(() => false);
               },
@@ -102,6 +101,12 @@ export const test = base.extend<{
         await start();
         await use({
           restart: async () => {
+            // Unload Vite's client before it can reload the page on reconnect.
+            const appPages = browser
+              .contexts()
+              .flatMap((context) => context.pages())
+              .filter((page) => page.url().startsWith(origin + "/"));
+            await Promise.all(appPages.map((page) => page.goto("about:blank")));
             await stop();
             await start();
           },

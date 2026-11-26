@@ -36,6 +36,8 @@ Apply the [API access rules](accounts.md#api-access) to every application API ro
 
 Use Vitest for frontend tests, pytest for backend tests, and Playwright Test with installed Chrome for browser tests in `e2e/`. Browser tests start the app themselves. Automated tests run offline after setup and use isolated SQLite data. Browser tests and UI checks sign in with test accounts without contacting Supabase or using a real account password. CI runs without secrets. Each unit test, old or new, runs in under one second on the development computer. Vitest and pytest each reach at least 80% line coverage of application code.
 
+Before a browser test restarts the app, the test fixture opens a blank page in each app tab. The test reopens the required pages after startup. The browser keeps its sign-in session, and the app opens the same test database.
+
 | Area | Required verification |
 | --- | --- |
 | Full product check | Run `npm run check` with and without local Supabase settings. Verify that both runs pass without contacting Supabase. Use the isolated browser setup to review every screen, walk through the sales tasks, and check the browser console. |

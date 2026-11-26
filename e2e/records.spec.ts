@@ -75,8 +75,7 @@ test('records, linked searches, blockers and saved edits after restart', async (
   await nav(p, 'Organizations');
   await discard(p, 'Lake Retail');
   await app.restart();
-  await p.reload();
-  await nav(p, 'Contacts');
+  await p.goto('/contacts');
   await expect(row(p, 'Pat Field')).toBeVisible();
   await expect(row(p, 'Pat Field')).not.toContainText('Lake Retail');
   await nav(p, 'Deals');
@@ -164,7 +163,6 @@ test('search, sort, edit and recover saved fields in all three directories', asy
     await p.getByRole('dialog').getByText('Save', { exact: true }).click();
     await expect(row(p, newName)).toBeVisible();
   }
-  await p.goto('about:blank');
   await app.restart();
   await p.goto('/deals');
   for (const [section, , name] of [...items].reverse()) {
