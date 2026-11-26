@@ -12,7 +12,8 @@ import {
 } from 'chart.js';
 import { Bar, Line } from 'react-chartjs-2';
 import {
-  api,
+  useApi,
+  FollowUpDate,
   detailPath,
   money,
   ReadState,
@@ -133,6 +134,7 @@ function Chart({ months, revenue }: { months: Month[]; revenue?: boolean }) {
   );
 }
 export function Dashboard() {
+  const api = useApi();
   const result = useRead<Report>('/dashboard'),
     report = result?.value;
   const { dataset, refresh } = useContext(Session),
@@ -222,11 +224,10 @@ export function Dashboard() {
                                 {t.owner}
                               </Link>
                             </div>
-                            {t.due === 'Today' ? (
-                              <time dateTime={t.follow_up}>Today</time>
-                            ) : (
-                              <ShortDate value={t.follow_up} />
-                            )}
+                            <span>
+                              {t.due === 'Due today' && 'Due today ? '}
+                              <FollowUpDate date={t.follow_up} zone={t.follow_up_zone} />
+                            </span>
                           </article>
                         ))}
                       </section>
@@ -268,6 +269,7 @@ function activityRow(a: Item) {
         <Link className="text-link" to={detailPath(a.kind, a.owner_id)}>
           {a.owner}
         </Link>
+        {a.added_by && <small>Added by {a.added_by}</small>}
       </div>
       <ShortDate value={a.occurred_at} />
     </article>

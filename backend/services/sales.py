@@ -1,11 +1,22 @@
 from collections import Counter
-from datetime import date
+from datetime import UTC, date, datetime
 from typing import TypedDict
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import select, update
 
-from backend.db import OPEN, STAGES, Problem, activities, contacts, deals, events, state
-from backend.services.records import get, listing, save
+from backend.db import (
+    OPEN,
+    STAGES,
+    Problem,
+    activities,
+    contacts,
+    deals,
+    events,
+    now,
+    state,
+)
+from backend.services.records import DEFAULT_ZONE, get, listing, save
 
 
 class MonthlySales(TypedDict):
@@ -46,7 +57,7 @@ def board(conn):
     }
 
 
-def move(conn, body):
+def move(conn, body, actor):
     deal = get(conn, "deals", body.get("id"))
     stage = body.get("stage")
     if stage not in STAGES:
@@ -54,7 +65,7 @@ def move(conn, body):
     changes = {"stage": stage}
     if "expected_date" in body:
         changes["expected_date"] = body["expected_date"]
-    save(conn, "deals", changes, deal["id"])
+    save(conn, "deals", changes, actor, deal["id"])
     for lane in {stage, deal["stage"]}:
         ids = list(
             conn.scalars(
@@ -74,14 +85,17 @@ def move(conn, body):
             ids.insert(ids.index(before) if before else len(ids), deal["id"])
         for position, record_id in enumerate(ids):
             conn.execute(
-                update(deals).where(deals.c.id == record_id).values(position=position)
+                update(deals)
+                .where(deals.c.id == record_id, deals.c.position != position)
+                .values(position=position, updated_at=now(), **actor.changes())
             )
     result = board(conn)
     result["revision"] += 1
     return result
 
 
-def dashboard(conn, today=None):
+def dashboard(conn, today=None, instant=None):
+    instant = instant or datetime.now(UTC)
     today = today or date.today()
     cards = listing(conn, "deals", today=today)
     months: dict[str, MonthlySales] = {}
@@ -139,11 +153,14 @@ def dashboard(conn, today=None):
         history.append(row)
         due = row["follow_up"]
         if due and not row["done"]:
+            zone = row["follow_up_zone"] or DEFAULT_ZONE
+            row["follow_up_zone"] = zone
+            local_date = instant.astimezone(ZoneInfo(zone)).date().isoformat()
             row["due"] = (
                 "Overdue"
-                if due < today.isoformat()
-                else "Today"
-                if due == today.isoformat()
+                if due < local_date
+                else "Due today"
+                if due == local_date
                 else "Upcoming"
             )
             followups.append(row)

@@ -8,7 +8,7 @@ A small business keeps track of its customers and sales in spreadsheets, inboxes
 
 Accountable gives a small sales team one shared place on the web to track customers and deals. Each team member signs in and works with the same records. A new salesperson can learn the workflow with realistic sample data. An experienced salesperson can find a record from any page, find the next follow-up, judge which deals are likely to close, and review customer history quickly.
 
-Accountable includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and spreadsheet import and export in Data. Organizations, contacts, deals, and activities show who added them. Each account can choose Light, Dark, or System in the menu under the user's initials. The hosted app requires an internet connection. It uses US dollars and a fixed pipeline.
+Accountable includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and spreadsheet import and export in Data. Search in the top bar finds active organizations, contacts, and deals by name. Record details, activity entries, and Trash show who added each record. Each account can choose Light, Dark, or System in the menu under the user's initials. System is the default. The hosted app requires an internet connection. It uses US dollars and a fixed pipeline.
 
 Each follow-up shows its due date and time zone. New follow-ups default to US Eastern Time. Users can change the time zone when they add or edit a follow-up.
 

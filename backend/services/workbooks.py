@@ -154,7 +154,7 @@ def parse(data):
         book.close()
 
 
-def exchange(store, data, dataset, supplied_token=None):
+def exchange(store, data, dataset, actor, supplied_token=None):
     rows = list(parse(data))
     preview = supplied_token is None
     with store.write(dataset, advance=not preview) as conn:
@@ -175,7 +175,12 @@ def exchange(store, data, dataset, supplied_token=None):
                 if kind == "deals" and old and fields["probability"] is None:
                     fields["probability"] = old["probability"]
                 row = save(
-                    conn, kind, fields, identifier if old else None, new_id=identifier
+                    conn,
+                    kind,
+                    fields,
+                    actor,
+                    identifier if old else None,
+                    new_id=identifier,
                 )
             except Problem as exc:
                 header = next(

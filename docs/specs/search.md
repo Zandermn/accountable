@@ -4,7 +4,7 @@ Put a Search field in the shared top bar on signed-in pages. Search active organ
 
 Give the search field a visible label or an accessible name. Support keyboard access to the results and show a clear message when there are no matches.
 
-Use the same matching rules on Postgres and SQLite. The search API requires sign-in. Main record tables also retain their own [search and filters](interface.md#navigation-and-common-interactions).
+Trim the query and compare names using Unicode case folding on both Postgres and SQLite. Treat wildcard characters as literal text. An empty query has no results. The search API requires sign-in. Main record tables also retain their own [search and filters](interface.md#navigation-and-common-interactions).
 
 ## Verification
 

@@ -7,8 +7,20 @@ export const python = fileURLToPath(
     import.meta.url,
   ),
 );
+export function loadSettings() {
+  try {
+    process.loadEnvFile();
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+}
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const run = spawnSync(python, process.argv.slice(2), { stdio: 'inherit' });
+  const args = process.argv.slice(2);
+  if (args[0] === '--settings') {
+    args.shift();
+    loadSettings();
+  }
+  const run = spawnSync(python, args, { stdio: 'inherit' });
   if (run.error) console.error('Run uv sync --locked first.', run.error.message);
   process.exitCode = run.status ?? 1;
 }

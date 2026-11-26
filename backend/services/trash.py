@@ -12,7 +12,14 @@ from backend.db import (
     state,
     uid,
 )
-from backend.services.records import append_position, find, get, require_link, table_for
+from backend.services.records import (
+    append_position,
+    find,
+    get,
+    require_link,
+    table_for,
+    with_follow_up_zone,
+)
 
 
 def linked(conn, table, field, record_id):
@@ -51,7 +58,7 @@ def preview(conn, kind, record_id):
     }
 
 
-def discard(conn, kind, record_id, revision):
+def discard(conn, kind, record_id, revision, actor):
     impact = preview(conn, kind, record_id)
     if impact["blockers"] or impact["revision"] != revision:
         raise Problem("Review the current deletion impact.", 409, preview=impact)
@@ -61,7 +68,7 @@ def discard(conn, kind, record_id, revision):
         conn.execute(
             update(table)
             .where(table.c.id == row["id"])
-            .values(organization_id=None, updated_at=stamp)
+            .values(organization_id=None, updated_at=stamp, **actor.changes())
         )
         key = "contact_id" if table is contacts else "deal_id"
         conn.execute(
@@ -73,13 +80,17 @@ def discard(conn, kind, record_id, revision):
     conn.execute(
         update(activities)
         .where(activities.c.id.in_(ids))
-        .values(deleted_at=stamp, deletion=operation)
+        .values(
+            deleted_at=stamp, deletion=operation, updated_at=stamp, **actor.changes()
+        )
     )
     table = table_for(kind)
     conn.execute(
         update(table)
         .where(table.c.id == record_id)
-        .values(deleted_at=stamp, deletion=operation)
+        .values(
+            deleted_at=stamp, deletion=operation, updated_at=stamp, **actor.changes()
+        )
     )
     return {"ok": True}
 
@@ -118,13 +129,17 @@ def trash_list(conn, kind=None, direction="desc"):
         for row in conn.execute(
             select(table).where(table.c.deleted_at.is_not(None))
         ).mappings():
-            rows.append(dict(row, kind=name, former=recovery(conn, name, row)))
+            rows.append(
+                with_follow_up_zone(
+                    dict(row, kind=name, former=recovery(conn, name, row))
+                )
+            )
     return sorted(
         rows, key=lambda r: (r["deleted_at"], r["id"]), reverse=direction == "desc"
     )
 
 
-def restore(conn, kind, record_id, choices):
+def restore(conn, kind, record_id, choices, actor):
     row = get(conn, kind, record_id, trashed=True, stale_action=True)
     operation = row["deletion"]
     if choices.get("deletion") != operation:
@@ -132,7 +147,12 @@ def restore(conn, kind, record_id, choices):
             "This Trash entry changed. Close this dialog and select Restore again.", 409
         )
     table = table_for(kind)
-    values = {"deleted_at": None, "deletion": None, "updated_at": now()}
+    values = {
+        "deleted_at": None,
+        "deletion": None,
+        "updated_at": now(),
+        **actor.changes(),
+    }
     former = recovery(conn, kind, row)
     if kind == "organizations":
         for link in conn.execute(
@@ -150,7 +170,7 @@ def restore(conn, kind, record_id, choices):
                     target.c.organization_id.is_(None),
                     target.c.deleted_at.is_(None),
                 )
-                .values(organization_id=record_id, updated_at=now())
+                .values(organization_id=record_id, updated_at=now(), **actor.changes())
             )
             # Keep pending history for a trashed child until the salesperson makes a choice.
             if not find(conn, target, target_id)["deleted_at"]:
@@ -194,6 +214,6 @@ def restore(conn, kind, record_id, choices):
         conn.execute(
             update(activities)
             .where(key == record_id, activities.c.deletion == operation)
-            .values(deleted_at=None, deletion=None)
+            .values(deleted_at=None, deletion=None, updated_at=now(), **actor.changes())
         )
     return get(conn, kind, record_id)

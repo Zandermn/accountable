@@ -37,7 +37,7 @@ test('records, linked searches, blockers and saved edits after restart', async (
   await p.getByLabel('Organization', { exact: true }).selectOption({ label: 'Lake Retail' });
   await p.getByText('Save', { exact: true }).click();
   await p.getByLabel('Status filter').selectOption('Lead');
-  await p.getByRole('searchbox').fill('lake');
+  await p.locator('.directory-tools').getByRole('searchbox').fill('lake');
   await expect(row(p, 'Pat Field')).toBeVisible();
   await nav(p, 'Deals');
   const terms = { 'Value (USD) *': '100', 'Expected close date *': '2025-12-01' };
@@ -151,7 +151,7 @@ test('search, sort, edit and recover saved fields in all three directories', asy
   ];
   for (const [section, previous, newName] of items) {
     await nav(p, section);
-    await p.getByRole('searchbox').fill('WEST');
+    await p.locator('.directory-tools').getByRole('searchbox').fill('WEST');
     await p.getByRole('columnheader', { name: /^Name/ }).getByRole('button').click();
     await expect(p.getByRole('columnheader', { name: /^Name/ })).toHaveAttribute(
       'aria-sort',

@@ -1,4 +1,4 @@
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { randomInt } from "node:crypto";
 import { createServer } from "node:net";
@@ -25,9 +25,23 @@ async function freePort(otherPort?: number) {
   }
   throw new Error("Could not find a free test port between 20000 and 29999.");
 }
+export async function signIn(page: Page, email = 'alex@example.test', path = '/') {
+  await page.goto(path);
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill('local-test-password');
+  await page.getByRole('button', { name: 'Sign in' }).click();
+  await expect(page.getByRole('navigation', { name: 'Main sections' })).toBeVisible();
+}
+
 export const test = base.extend<{
+  signedIn: boolean;
   app: { restart: () => Promise<void>; env: NodeJS.ProcessEnv };
 }>({
+  signedIn: [true, { option: true }],
+  page: async ({ page, signedIn }, use) => {
+    if (signedIn) await signIn(page);
+    await use(page);
+  },
   baseURL: async ({ app }, use) =>
     use("http://127.0.0.1:" + app.env.ACCOUNTABLE_PORT),
   app: [
@@ -38,8 +52,7 @@ export const test = base.extend<{
       const env = {
         ...process.env,
         npm_config_offline: "true",
-        ACCOUNTABLE_DB: join(dir, "test.db"),
-        ACCOUNTABLE_BACKUPS: join(dir, "backups"),
+        ACCOUNTABLE_TEST_DB: join(dir, "test.db"),
         ACCOUNTABLE_PORT: String(webPort),
         ACCOUNTABLE_API_PORT: String(apiPort),
       };
@@ -47,7 +60,7 @@ export const test = base.extend<{
       async function start() {
         child = spawn(
           process.execPath,
-          [process.env.npm_execpath!, "run", "dev", "--", "--stdin"],
+          ["scripts/dev-test.mjs", "--stdin"],
           { env, stdio: "pipe" },
         );
         let log = "";
@@ -61,7 +74,7 @@ export const test = base.extend<{
                   throw new Error(`App exited with code ${child.exitCode}`);
                 }
                 return fetch(
-                  "http://127.0.0.1:" + env.ACCOUNTABLE_PORT + "/api/version",
+                  "http://127.0.0.1:" + env.ACCOUNTABLE_PORT + "/health",
                 )
                   .then((r) => r.ok)
                   .catch(() => false);

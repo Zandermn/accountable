@@ -4,7 +4,7 @@
 
 - Use a TypeScript React and Vite frontend in `frontend/`, with Node.js 24 or later and Node.js 26 as the project target. Use a Python 3.12 FastAPI backend in `backend/` with uv and root-level `pyproject.toml` and `uv.lock`. Use the root npm workspace and cross-platform npm scripts.
 - In development, bind both servers to loopback and use Vite to proxy the same-origin JSON API to FastAPI. Serve assets and fonts with the app. The one-time setup installs the runtimes, project dependencies, and Chrome for browser tests. The app requires an internet connection for Supabase.
-- Use Postgres on Supabase for app data and isolated SQLite databases for tests. Use SQLAlchemy Core with no raw SQL. Use a versioned schema for records, attribution, links, deletion metadata, board order, stage history, and account preferences. Use database constraints for referential integrity and shared service validation for active-state rules. Commit changes before returning success.
+- Use Postgres on Supabase for app data and isolated SQLite databases for tests. Keep application tables in the private `accountable` Postgres schema. Use SQLAlchemy Core with no raw SQL. Use a versioned schema for records, attribution, links, deletion metadata, board order, stage history, and account preferences. Use database constraints for referential integrity and shared service validation for active-state rules. Commit changes before returning success.
 - Use a shared backend domain service for API writes and workbook import. Validate active links, stage changes, and restore conditions within the write transaction. Before a confirmed deletion or board move, check that the request uses the current revision. Refresh the affected view when a revision conflict occurs.
 - Use the same backend calculations for Dashboard and Pipeline summaries that need to agree. Add a dependency only if the implementation plan explains why it is needed.
 
@@ -19,6 +19,8 @@
 | Action | Behavior |
 | --- | --- |
 | `npm run dev` | Start FastAPI and Vite, print the local browser URL, and connect to the configured Supabase project. |
+| `npm run dev:test` | Start FastAPI and Vite with local test accounts and a temporary SQLite database for browser inspection. |
+| `npm run build` then `npm start` | Build the frontend and serve the app and API from FastAPI. |
 | `npm test` | Run frontend, backend, and browser tests, even when an earlier suite fails. Return a failure if any suite fails or cannot start. |
 | `npm run check` | Check formatting, lint, types, and secrets, then run all three test suites. |
 
@@ -26,7 +28,7 @@ The local data commands `npm run save`, `npm run load`, and `npm run seed` are r
 
 ## JSON API design
 
-Apply the [API access rules](accounts.md#api-access) to every application API route. Return field errors for invalid inputs, a missing-record response for unavailable record URLs, and a conflict response when a link, blocking deal, or revision makes the request invalid in the current state. Return the current blocker or recovery options with the conflict. Treat repeated or stale actions as conflicts when the original action no longer applies, so they cannot create duplicate stage events or repeat a deletion.
+Apply the [API access rules](accounts.md#api-access) to every application API route. Use `/health` for readiness and `/auth-config` for the public sign-in settings. Return field errors for invalid inputs, a missing-record response for unavailable record URLs, and a conflict response when a link, blocking deal, or revision makes the request invalid in the current state. Return the current blocker or recovery options with the conflict. Treat repeated or stale actions as conflicts when the original action no longer applies, so they cannot create duplicate stage events or repeat a deletion.
 
 ## Verification
 

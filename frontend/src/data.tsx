@@ -23,6 +23,7 @@ export const labels: Record<string, string> = {
   type: 'Activity type',
   occurred_at: 'Occurred at',
   follow_up: 'Follow-up date',
+  follow_up_zone: 'Time zone',
   organization: 'Organization',
   contact: 'Main contact',
   close_date: 'Close date',
@@ -40,7 +41,7 @@ export const fields: Record<string, string[]> = {
     'organization_id',
     'contact_id',
   ],
-  activities: ['type', 'description', 'occurred_at', 'follow_up'],
+  activities: ['type', 'description', 'occurred_at', 'follow_up', 'follow_up_zone'],
 };
 export const singular: Record<string, string> = {
   organizations: 'organization',
@@ -57,6 +58,16 @@ export function ShortDate({ value }: { value: string }) {
     <time dateTime={value} title={date.toLocaleDateString()}>
       {monthDay.format(date)}
     </time>
+  );
+}
+export const defaultZone = 'America/New_York';
+export const zoneName = (zone = defaultZone) =>
+  zone === defaultZone ? 'US Eastern Time' : zone.replaceAll('_', ' ');
+export function FollowUpDate({ date, zone }: { date: string; zone?: string }) {
+  return (
+    <>
+      <ShortDate value={date} /> <span>({zoneName(zone || defaultZone)})</span>
+    </>
   );
 }
 export const money = (cents: number) =>
@@ -89,6 +100,8 @@ export interface Row {
   description: string;
   occurred_at: string;
   follow_up: string;
+  follow_up_zone: string;
+  added_by: string;
   done: boolean;
   kind: string;
   deleted_at: string;
@@ -114,37 +127,63 @@ export class Failure extends Error {
     super(message);
   }
 }
-export async function api<T>(
-  path: string,
-  method = 'GET',
-  body?: unknown,
-  dataset?: number,
-  signal?: AbortSignal,
-): Promise<T> {
-  const form = body instanceof FormData;
-  const res = await fetch('/api' + path, {
-    method,
-    signal,
-    headers: {
-      ...(!form && body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      ...(dataset !== undefined ? { 'X-Dataset': String(dataset) } : {}),
-    },
-    body: body === undefined ? undefined : form ? body : JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    const location = data.sheet ? data.sheet + ', row ' + data.row + ', ' + data.field + ' — ' : '';
-    throw new Failure(
-      location + (data.message || 'The request failed. Refresh and try again.'),
-      data.field,
-      data.preview,
-    );
+export function createApi(getToken?: () => Promise<string>) {
+  async function request(
+    path: string,
+    method = 'GET',
+    body?: unknown,
+    dataset?: number,
+    signal?: AbortSignal,
+  ) {
+    const form = body instanceof FormData;
+    const token = await getToken?.();
+    const response = await fetch('/api' + path, {
+      method,
+      signal,
+      headers: {
+        ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        ...(!form && body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+        ...(dataset !== undefined ? { 'X-Dataset': String(dataset) } : {}),
+      },
+      body: body === undefined ? undefined : form ? body : JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      const location = data.sheet
+        ? data.sheet + ', row ' + data.row + ', ' + data.field + ' ? '
+        : '';
+      throw new Failure(
+        location + (data.message || 'The request failed. Refresh and try again.'),
+        data.field,
+        data.preview,
+      );
+    }
+    return response;
   }
-  return data;
+
+  return {
+    async json<T>(
+      path: string,
+      method?: string,
+      body?: unknown,
+      dataset?: number,
+      signal?: AbortSignal,
+    ): Promise<T> {
+      const response = await request(path, method, body, dataset, signal);
+      return response.json();
+    },
+    async download(path: string) {
+      return (await request(path)).blob();
+    },
+  };
 }
+export const ApiContext = createContext(createApi());
+export const useApi = () => useContext(ApiContext).json;
+export const useDownload = () => useContext(ApiContext).download;
 export const Session = createContext({ dataset: 0, epoch: 0, refresh: () => {} });
 export function useRead<T>(path: string | null) {
   const { epoch } = useContext(Session);
+  const api = useApi();
   const [result, set] = useState<{ path: string; value?: T; error?: string; epoch: number }>();
   useEffect(() => {
     let active = true;
@@ -160,7 +199,7 @@ export function useRead<T>(path: string | null) {
     return () => {
       active = false;
     };
-  }, [path, epoch]);
+  }, [api, path, epoch]);
   return result?.path === path ? result : undefined;
 }
 export function ReadState({ error, empty }: { error?: string; empty?: string }) {

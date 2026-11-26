@@ -4,7 +4,7 @@ test('recover former links, choose replacements, and restore follow-ups to the D
   app,
   request,
 }) => {
-  const headers = { 'X-Dataset': '1' };
+  const headers = { Authorization: 'Bearer alex-token', 'X-Dataset': '1' };
   async function add(kind: string, data: object) {
     const response = await request.post('/api/records/' + kind, { headers, data });
     expect(response.ok()).toBe(true);

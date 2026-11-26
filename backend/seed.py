@@ -1,12 +1,15 @@
 from datetime import UTC, date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from sqlalchemy import insert
 
 from backend.db import STAGES, activities, contacts, deals, events, organizations
+from backend.services.records import DEFAULT_ZONE
 
 
 def sample(conn):
     today = date.today()
+    follow_up_today = datetime.now(ZoneInfo(DEFAULT_ZONE)).date()
     owners = [
         ("Harbor Works", "Manufacturing", "Maya Chen", "Customer"),
         ("Juniper Studio", "Design", "Alex Rivera", "Qualified"),
@@ -107,7 +110,8 @@ def sample(conn):
                 type=kind,
                 description=description,
                 occurred_at=(datetime.now(UTC) - timedelta(days=i + 1)).isoformat(),
-                follow_up=(today + timedelta(days=days)).isoformat(),
+                follow_up=(follow_up_today + timedelta(days=days)).isoformat(),
+                follow_up_zone=DEFAULT_ZONE,
             )
         )
     for i, note in [

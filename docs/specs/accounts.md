@@ -2,13 +2,15 @@
 
 ## Sign-in and shared access
 
-- Use Supabase Auth with email and password. Add accounts in the Supabase dashboard. The app has no sign-up, password reset, Google sign-in, or magic link flow.
+- Use Supabase Auth with email and password. Disable new-user sign-up in Supabase Auth. Add accounts in the Supabase dashboard. The app has no sign-up, password reset, Google sign-in, or magic link flow.
 - Show the sign-in screen at every app page URL when the user is signed out. Label the fields Email and Password and the action Sign in. Keep labels and errors clear and follow the [brand and accessibility rules](interface.md#brand-and-layout).
 - All signed-in users can see and work with the same organizations, contacts, deals, and activities. They can also use Dashboard, Pipeline, Trash, and Data. Creator and last editor information does not restrict access.
 
 ## User menu
 
 Show the user's initials in the shared top bar. Give the menu button an accessible name. The menu offers Light, Dark, and System and shows the current choice. Sign out ends the session and returns to the sign-in screen. Follow the [theme rules](interface.md#theme-persistence).
+
+Each theme save includes the version read for that account. When two browsers save from the same version, accept one save and return a conflict to the other. Let the user retry after the app reads the current preference.
 
 ## API access
 

@@ -4,6 +4,10 @@ import { join } from 'node:path';
 import { python } from './python.mjs';
 import { runStep } from './run-step.mjs';
 
+for (const setting of ['DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_PUBLISHABLE_KEY']) {
+  delete process.env[setting];
+}
+
 function runWithTestDirectory(suite, run) {
   try {
     const dir = mkdtempSync(join(tmpdir(), `accountable-${suite.toLowerCase()}-`));

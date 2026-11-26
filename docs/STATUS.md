@@ -1,6 +1,14 @@
-# Accountable MVP
+# Accountable status
 
-The local CRM is implemented. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app keeps records and board order in SQLite.
+The multi-user CRM includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app uses Supabase Postgres for shared data and isolated SQLite databases for automated tests.
+
+## Multi-user implementation
+
+- Added email and password sign-in, protected API and workbook requests, and creator and editor attribution for writes and cascades. Added follow-up time zones and retired local backup controls and commands.
+- Added top-bar search for active organizations, contacts, and deals. Added the user menu with System, Light, Dark, and sign-out. Each account has its own saved theme.
+- Added versioned startup migrations and one-time sample initialization, a local browser test app, and the Render Blueprint. Added API, component, and browser Proof tests for the three phases.
+- `npm run check` passed with and without inherited Supabase settings. It ran 27 Vitest tests, 54 pytest tests, and 17 Playwright tests. Line coverage was 87.02% in Vitest and 91.68% in pytest. Each unit test ran in under one second.
+- Verified SQLite and local PostgreSQL search parity, concurrent startup, and one-time sample initialization. Verified FastAPI serves deep links, bundled assets, and fonts from the production build. Checked the isolated app in Chrome in Light and Dark themes. Live Supabase and Render verification remain pending.
 
 ## Multi-user intent and specification
 

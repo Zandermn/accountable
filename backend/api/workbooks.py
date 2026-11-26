@@ -37,5 +37,9 @@ def upload(
     if len(data) > 16 * 1024 * 1024:
         raise Problem("Select a workbook smaller than 16 MB.")
     return exchange(
-        request.app.state.store, data, x_dataset, token if mode == "apply" else None
+        request.app.state.store,
+        data,
+        x_dataset,
+        request.state.actor,
+        token if mode == "apply" else None,
     )

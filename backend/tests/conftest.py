@@ -1,16 +1,15 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.main import create_app
+from backend.tests.local_app import create_test_app
 
 
 @pytest.fixture
-def api(tmp_path, monkeypatch):
-    monkeypatch.setenv("ACCOUNTABLE_BACKUPS", str(tmp_path / "backups"))
+def api(tmp_path):
     with TestClient(
-        create_app(tmp_path / "test.db", seed=False), base_url="http://127.0.0.1"
+        create_test_app(tmp_path / "test.db", seed=False), base_url="http://127.0.0.1"
     ) as client:
-        client.headers.update({"X-Dataset": "1"})
+        client.headers.update({"X-Dataset": "1", "Authorization": "Bearer alex-token"})
         yield client
 
 

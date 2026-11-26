@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  api,
+  useApi,
   detailPath,
   money,
   probabilities,
@@ -47,6 +47,7 @@ export function Stats({ totals, board = false }: { totals: Totals; board?: boole
   );
 }
 function NotePanel({ row }: { row: Row }) {
+  const api = useApi();
   const { dataset, refresh } = useContext(Session),
     open = useContext(Commands);
   const [draft, setDraft] = useState<{ id?: string; text: string } | null>(null),
@@ -98,7 +99,10 @@ function NotePanel({ row }: { row: Row }) {
           <article className="deal-note" key={a.id}>
             <p className="note-text">{a.description}</p>
             <div className="note-meta">
-              <ShortDate value={a.occurred_at} />
+              <span>
+                <ShortDate value={a.occurred_at} />
+                {a.added_by && <> ? Added by {a.added_by}</>}
+              </span>
               <span className="note-actions">
                 <button
                   className="text-link"
@@ -160,6 +164,7 @@ function DealPanel({
             <span className="record-status">{row.stage}</span>
           </span>
           <h2>{row.name}</h2>
+          {row.added_by && <p>Added by {row.added_by}</p>}
         </div>
         <button className="icon-button" aria-label="Close deal details" onClick={close}>
           ×
@@ -224,6 +229,7 @@ export function SalesWorkspace({
   onBoard: boolean;
   embedded?: boolean;
 }) {
+  const api = useApi();
   const nav = useNavigate(),
     location = useLocation(),
     open = useContext(Commands),

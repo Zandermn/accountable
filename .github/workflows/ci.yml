@@ -43,5 +43,8 @@ jobs:
           uv sync --locked --python 3.12
           npm ci
 
-      - name: Run quick checks
-        run: npm run check:quick
+      - name: Install Chrome
+        run: npx playwright install --with-deps chrome
+
+      - name: Run checks
+        run: npm run check

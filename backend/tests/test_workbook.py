@@ -202,3 +202,25 @@ def test_export_reports_text_that_excel_cannot_store(api):
     assert response.json()["field"] == "Notes"
     assert response.json()["sheet"] == "Organizations"
     assert api.get("/api/records/organizations/" + org["id"]).json()["notes"] == note
+
+
+def test_workbook_uses_the_account_that_applies_the_changes(api):
+    existing = add(api, "organizations", name="Original")
+    data = workbook(
+        {"Organizations": [[existing["id"], "Edited"], ["new", "Imported"]]}
+    )
+    preview = send(api, data).json()
+    api.headers["Authorization"] = "Bearer blair-token"
+    send(api, data, preview["token"]).raise_for_status()
+    edited = api.get("/api/records/organizations/" + existing["id"]).json()
+    imported = api.get("/api/records/organizations/new").json()
+    assert (edited["created_by"], edited["updated_by"], edited["added_by"]) == (
+        "alex",
+        "blair",
+        "Alex Morgan",
+    )
+    assert (imported["created_by"], imported["updated_by"], imported["added_by"]) == (
+        "blair",
+        "blair",
+        "blair@example.test",
+    )

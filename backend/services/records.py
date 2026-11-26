@@ -1,6 +1,7 @@
 import re
 from datetime import UTC, date, datetime
 from urllib.parse import urlsplit
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import delete, func, insert, select, update
 
@@ -18,6 +19,9 @@ from backend.db import (
     organizations,
     uid,
 )
+
+DEFAULT_ZONE = "America/New_York"
+IDENTITY_FIELDS = {"created_by", "updated_by", "added_by", "actor", "user_id"}
 
 FIELDS = {
     "organizations": ("name", "website", "industry", "notes"),
@@ -37,6 +41,7 @@ FIELDS = {
         "description",
         "occurred_at",
         "follow_up",
+        "follow_up_zone",
         "done",
         "contact_id",
         "deal_id",
@@ -65,6 +70,12 @@ def get(conn, kind, record_id, trashed=False, stale_action=False):
         if stale_action:
             raise Problem("This action no longer applies. Refresh the list.", 409)
         raise Problem("This record is unavailable. Refresh the list.", 404)
+    return with_follow_up_zone(row)
+
+
+def with_follow_up_zone(row):
+    if row.get("follow_up") and not row.get("follow_up_zone"):
+        row["follow_up_zone"] = DEFAULT_ZONE
     return row
 
 
@@ -146,7 +157,10 @@ def deal_fields(conn, fields, old, today):
         fields["initial_stage"] = stage
 
 
-def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
+def save(conn, kind, supplied, actor, record_id=None, new_id=None, today=None):
+    supplied = {
+        key: value for key, value in supplied.items() if key not in IDENTITY_FIELDS
+    }
     table = table_for(kind)
     old = get(conn, kind, record_id) if record_id else {}
     fields = {k: old[k] for k in FIELDS[kind] if k in old}
@@ -196,6 +210,12 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
                 "Enter the time of occurrence with its time zone.", field="occurred_at"
             )
         calendar(fields, "follow_up")
+        zone = fields.get("follow_up_zone") or DEFAULT_ZONE
+        try:
+            ZoneInfo(zone)
+        except (ValueError, ZoneInfoNotFoundError):
+            raise Problem("Choose a valid time zone.", field="follow_up_zone")
+        fields["follow_up_zone"] = zone if fields.get("follow_up") else None
         if "done" in fields and type(fields["done"]) is not bool:
             raise Problem("Select a completion state.", field="done")
         if not old or not fields.get("follow_up"):
@@ -207,19 +227,24 @@ def save(conn, kind, supplied, record_id=None, new_id=None, today=None):
         conn.execute(
             update(table)
             .where(table.c.id == record_id)
-            .values(**fields, updated_at=now())
+            .values(**fields, **actor.changes(), updated_at=now())
         )
         if kind == "deals" and old["stage"] != fields["stage"]:
             conn.execute(
                 insert(events).values(
-                    deal_id=record_id, previous=old["stage"], stage=fields["stage"]
+                    deal_id=record_id,
+                    previous=old["stage"],
+                    stage=fields["stage"],
+                    **actor.changes(creating=True),
                 )
             )
     else:
         record_id = new_id or uid()
         if any(find(conn, t, record_id) for t in TABLES.values()):
             raise Problem("This ID is already in use.", 409, "id")
-        conn.execute(insert(table).values(id=record_id, **fields))
+        conn.execute(
+            insert(table).values(id=record_id, **fields, **actor.changes(creating=True))
+        )
     return get(conn, kind, record_id)
 
 
@@ -252,6 +277,7 @@ def listing(
         stmt = stmt.where(contacts.c.status == status)
     rows = [dict(r) for r in conn.execute(stmt).mappings()]
     for row in rows:
+        with_follow_up_zone(row)
         if kind == "deals":
             opened = row["stage"] in OPEN
             row["close_date"] = row["expected_date"] if opened else row["actual_date"]
@@ -316,7 +342,7 @@ def listing(
 def timeline(conn, kind, record_id):
     key = activities.c.deal_id if kind == "deals" else activities.c.contact_id
     rows = [
-        dict(r)
+        with_follow_up_zone(dict(r))
         for r in conn.execute(
             select(activities).where(
                 key == record_id, activities.c.deleted_at.is_(None)

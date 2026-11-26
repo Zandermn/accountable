@@ -8,7 +8,7 @@ Trim names and reject blank names.
 
 For each organization, contact, deal, and activity, record the creator and the last editor. On creation, set both to the signed-in user. On later changes, preserve the creator and update the last editor. This applies to writes from forms, Pipeline, Data, and Trash. Get the acting user from the [verified token](accounts.md#api-access).
 
-Show **Added by** on record details and activity entries. Show the creator's display name, or the creator's email address if the account has no display name. Show **Sample data** for records and activities created by the seed, even after another user edits them.
+Show **Added by** on record details, activity entries, and Trash. When a user adds a record, save their display name, or their email address if their account has no display name. Keep that label with the record. Show **Sample data** for seeded records and activities, including after a user edits them.
 
 ## JSON API design
 

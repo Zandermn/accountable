@@ -13,6 +13,7 @@ test('contact details link related records and send activity actions for the cor
     description: 'Discuss renewal',
     occurred_at: '2026-05-10T12:00:00Z',
     follow_up: '2026-05-11',
+    added_by: 'Alex Morgan',
     done: false,
   };
   const contact = {
@@ -39,7 +40,9 @@ test('contact details link related records and send activity actions for the cor
     '/organizations/office',
   );
   expect(screen.getByText('Discuss renewal')).toBeVisible();
-  expect(screen.getByText(/Follow-up 2026-05-11.*Open/)).toBeVisible();
+  expect(screen.getByText('May 11')).toHaveAttribute('datetime', '2026-05-11');
+  expect(screen.getByText('(US Eastern Time)')).toBeVisible();
+  expect(screen.getByText('Added by Alex Morgan')).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Log activity' }));
   expect(open).toHaveBeenLastCalledWith({
     type: 'edit',

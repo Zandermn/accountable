@@ -19,9 +19,8 @@
     "test:api": "node scripts/python.mjs -m pytest",
     "test:e2e": "playwright test",
     "build": "npm run build --workspace frontend",
-    "save": "node scripts/python.mjs -m backend.data_commands save",
-    "load": "node scripts/python.mjs -m backend.data_commands load",
-    "seed": "node scripts/python.mjs -m backend.data_commands seed"
+    "dev:test": "node scripts/dev-test.mjs",
+    "start": "node scripts/python.mjs --settings -m uvicorn backend.main:app"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

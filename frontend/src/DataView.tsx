@@ -1,33 +1,25 @@
 import { useContext, useState } from 'react';
-import { api, ReadState, Session, useRead } from './data';
-import { Modal } from './dialogs';
+import { Session, useApi, useDownload } from './data';
 
-type Backup = { id: string; created_at: string };
 type Preview = { token: string; changes: string[] };
 export function Data() {
   const { dataset, refresh } = useContext(Session);
-  const backups = useRead<Backup[]>('/backups');
-  const [selected, select] = useState<Backup>(),
-    [token, setToken] = useState('');
+  const api = useApi();
+  const download = useDownload();
   const [file, setFile] = useState<File>(),
     [preview, setPreview] = useState<Preview>();
   const [error, setError] = useState(''),
     [message, setMessage] = useState(''),
     [busy, setBusy] = useState(false);
-  async function downloadWorkbook() {
+  async function downloadWorkbook(mode: 'template' | 'export') {
     setError('');
     setMessage('');
     setBusy(true);
     try {
-      const response = await fetch('/api/workbook/export');
-      if (!response.ok) {
-        const problem = await response.json();
-        throw new Error(problem.message || 'Export failed. Try again.');
-      }
-      const url = URL.createObjectURL(await response.blob());
+      const url = URL.createObjectURL(await download('/workbook/' + mode));
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'accountable-export.xlsx';
+      link.download = 'accountable-' + mode + '.xlsx';
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 0);
     } catch (e) {
@@ -63,34 +55,6 @@ export function Data() {
       setBusy(false);
     }
   }
-  async function confirm(cancel = false) {
-    if (!selected || busy) return;
-    setBusy(true);
-    setError('');
-    const path = '/backups/' + selected.id;
-    try {
-      if (cancel) {
-        if (token) await api(path + '/cancel', 'POST', { token }, dataset);
-        select(undefined);
-        setToken('');
-      } else if (!token) {
-        const result = await api<{ token: string }>(path + '/confirm', 'POST', undefined, dataset);
-        setToken(result.token);
-      } else {
-        await api(path, 'DELETE', { token }, dataset);
-        select(undefined);
-        setToken('');
-        setMessage('Backup deleted.');
-        refresh();
-      }
-    } catch (e) {
-      setError((e as Error).message);
-      select(undefined);
-      setToken('');
-    } finally {
-      setBusy(false);
-    }
-  }
   return (
     <>
       <header className="page-head">
@@ -101,10 +65,18 @@ export function Data() {
           <h2>Spreadsheet exchange</h2>
           <p>Import active organizations, contacts, and deals from an Excel workbook.</p>
           <div className="row-actions">
-            <a className="button subtle" href="/api/workbook/template" download>
+            <button
+              className="button subtle"
+              disabled={busy}
+              onClick={() => downloadWorkbook('template')}
+            >
               Download template
-            </a>
-            <button className="button subtle" disabled={busy} onClick={downloadWorkbook}>
+            </button>
+            <button
+              className="button subtle"
+              disabled={busy}
+              onClick={() => downloadWorkbook('export')}
+            >
               Export workbook
             </button>
           </div>
@@ -148,65 +120,9 @@ export function Data() {
             </section>
           )}
         </section>
-        <section className="panel">
-          <div className="panel-head">
-            <h2>Local backups</h2>
-            <button className="button subtle" onClick={refresh}>
-              Refresh backups
-            </button>
-          </div>
-          <p>
-            Use <code>npm run save</code> for a full backup. Use{' '}
-            <code>npm run load -- &lt;backup-id&gt;</code> to restore it.
-          </p>
-          {!backups?.value ? (
-            <ReadState error={backups?.error} />
-          ) : !backups.value.length ? (
-            <p>No saved backups.</p>
-          ) : (
-            <ul className="backup-list">
-              {backups.value.map((b) => (
-                <li key={b.id}>
-                  <time>{new Date(b.created_at).toLocaleString()}</time>
-                  <code>{b.id}</code>
-                  <button
-                    className="button subtle"
-                    onClick={() => {
-                      select(b);
-                      setToken('');
-                      setError('');
-                    }}
-                  >
-                    Delete backup
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
-      {selected && (
-        <Modal
-          key={token || 'first'}
-          title={token ? 'Confirm permanent deletion' : 'Delete backup'}
-          close={() => confirm(true)}
-        >
-          <p>{token ? 'Permanently delete this backup?' : 'Remove this saved backup?'}</p>
-          <p>
-            <code>{selected.id}</code>
-          </p>
-          <div className="dialog-actions">
-            <button className="button subtle" disabled={busy} onClick={() => confirm(true)}>
-              Cancel
-            </button>
-            <button className="button danger" disabled={busy} onClick={() => confirm()}>
-              {token ? 'Delete permanently' : 'Continue'}
-            </button>
-          </div>
-        </Modal>
-      )}
     </>
   );
 }

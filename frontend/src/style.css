@@ -268,29 +268,6 @@ main {
   border-radius: 12px;
   background: var(--surface);
 }
-.theme-message,
-.theme-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.theme-toggle {
-  padding: 5px 8px 5px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--page);
-  color: var(--ink);
-}
-.theme-toggle[aria-disabled='true'] {
-  cursor: default;
-}
-.theme-toggle strong {
-  min-width: 48px;
-  border-radius: 5px;
-  padding: 2px 6px;
-  background: var(--selected);
-  text-align: center;
-}
 .view {
   scroll-margin-top: 20px;
   max-width: 1530px;
@@ -1208,30 +1185,11 @@ button:disabled {
 }
 .data-layout {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: minmax(0, 680px);
   align-items: start;
 }
 .data-layout .panel {
   display: grid;
   gap: 14px;
   justify-items: start;
-}
-.backup-list {
-  list-style: none;
-  padding: 0;
-  width: 100%;
-  display: grid;
-  gap: 8px;
-}
-.backup-list li {
-  display: grid;
-  gap: 4px;
-  justify-items: start;
-  padding: 10px;
-  background: var(--page);
-  border-radius: 8px;
-}
-.backup-list code {
-  overflow-wrap: anywhere;
 }

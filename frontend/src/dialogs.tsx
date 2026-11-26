@@ -1,7 +1,9 @@
 import { useContext, useEffect, useRef, useState, type ReactNode, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  api,
+  useApi,
+  defaultZone,
+  zoneName,
   detailPath,
   Failure,
   fields,
@@ -80,6 +82,7 @@ export function Actions({
   );
 }
 export function RecordDialog({ action, close }: { action: Action; close: () => void }) {
+  const api = useApi();
   const { dataset, refresh } = useContext(Session);
   const { kind, row, initial } = action;
   const [values, set] = useState<Record<string, string>>(() => {
@@ -88,12 +91,16 @@ export function RecordDialog({ action, close }: { action: Action; close: () => v
       stage: 'New',
       probability: '10',
       type: 'Note',
+      follow_up_zone: defaultZone,
       occurred_at: localTime(new Date().toISOString()),
       ...initial,
     };
     if (row) for (const field of fields[kind]) v[field] = String(row[field as keyof Row] ?? '');
     if (row && kind === 'deals') v.value_cents = (row.value_cents / 100).toFixed(2);
-    if (row && kind === 'activities') v.occurred_at = localTime(row.occurred_at);
+    if (row && kind === 'activities') {
+      v.occurred_at = localTime(row.occurred_at);
+      v.follow_up_zone = row.follow_up_zone || defaultZone;
+    }
     return v;
   });
   const [error, setError] = useState<Failure>();
@@ -119,7 +126,7 @@ export function RecordDialog({ action, close }: { action: Action; close: () => v
     return () => {
       active = false;
     };
-  }, [deletePreviewPath]);
+  }, [api, deletePreviewPath]);
   const impact = updatedImpact;
   const stale = dataset !== action.dataset;
   const title =
@@ -234,6 +241,20 @@ export function RecordDialog({ action, close }: { action: Action; close: () => v
       return select(
         key,
         options[key].map((s) => ({ id: s, name: s })),
+      );
+    if (key === 'follow_up_zone')
+      return select(
+        key,
+        [
+          ...new Set([
+            defaultZone,
+            'UTC',
+            values.follow_up_zone,
+            ...Intl.supportedValuesOf('timeZone'),
+          ]),
+        ]
+          .filter(Boolean)
+          .map((zone) => ({ id: zone, name: zoneName(zone) })),
       );
     if (key === 'organization_id' || key === 'contact_id')
       return select(

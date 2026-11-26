@@ -9,7 +9,10 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Workspace } from './Workspace';
+import { Auth, type Account } from './auth';
+import { Search } from './Search';
 import { Theme } from './theme';
+import { UserMenu } from './UserMenu';
 const sections = [
   { name: 'Dashboard', icon: LayoutDashboard },
   { name: 'Organizations', icon: Building2 },
@@ -20,6 +23,18 @@ const sections = [
   { name: 'Data', icon: Database },
 ];
 export function App() {
+  return (
+    <Auth>
+      {(account) => (
+        <Theme>
+          <Shell account={account} />
+        </Theme>
+      )}
+    </Auth>
+  );
+}
+
+function Shell({ account }: { account: Account }) {
   const nav = ({ name, icon: Icon }: (typeof sections)[number]) => (
     <NavLink
       key={name}
@@ -31,29 +46,28 @@ export function App() {
     </NavLink>
   );
   return (
-    <Theme>
-      {(control) => (
-        <div className="shell">
-          <aside className="rail">
-            <div className="rail-inner">
-              <Link to="/" className="brand">
-                <span className="brand-mark" />
-                Accountable
-              </Link>
-              <nav className="menu" aria-label="Main sections">
-                {sections.slice(0, 5).map(nav)}
-              </nav>
-              <nav className="menu" aria-label="Utilities">
-                {sections.slice(5).map(nav)}
-              </nav>
-            </div>
-          </aside>
-          <main>
-            {control}
-            <Workspace />
-          </main>
+    <div className="shell">
+      <aside className="rail">
+        <div className="rail-inner">
+          <Link to="/" className="brand">
+            <span className="brand-mark" />
+            Accountable
+          </Link>
+          <nav className="menu" aria-label="Main sections">
+            {sections.slice(0, 5).map(nav)}
+          </nav>
+          <nav className="menu" aria-label="Utilities">
+            {sections.slice(5).map(nav)}
+          </nav>
         </div>
-      )}
-    </Theme>
+      </aside>
+      <main>
+        <header className="top-bar">
+          <Search />
+          <UserMenu account={account} />
+        </header>
+        <Workspace />
+      </main>
+    </div>
   );
 }

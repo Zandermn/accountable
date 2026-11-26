@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
 from conftest import add, deal
 
@@ -106,7 +106,9 @@ def test_known_totals_calendar_buckets_funnel_and_followups(api):
             follow_up=due,
         )
     with api.app.state.store.read() as conn:
-        report = sales.dashboard(conn, date(2026, 2, 28))
+        report = sales.dashboard(
+            conn, date(2026, 2, 28), datetime(2026, 2, 28, 12, tzinfo=UTC)
+        )
     assert report["totals"] == {"count": 2, "value": 30000, "expected": 12500}
     assert [(m["month"], m["wins"], m["revenue"]) for m in report["months"]] == [
         ("2025-09", 0, 0),
@@ -124,7 +126,11 @@ def test_known_totals_calendar_buckets_funnel_and_followups(api):
         "Won": 5000,
         "Lost": 0,
     }
-    assert [r["due"] for r in report["followups"]] == ["Overdue", "Today", "Upcoming"]
+    assert [r["due"] for r in report["followups"]] == [
+        "Overdue",
+        "Due today",
+        "Upcoming",
+    ]
 
 
 def test_expected_revenue_rounds_after_summing_fractional_cents(api):

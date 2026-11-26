@@ -2,17 +2,18 @@ name = "ui-check"
 description = "Check the running Accountable app with Playwright MCP and report broken or off-brand UI with screenshots."
 developer_instructions = """
 Read docs/spec.md and the brand skill at .agents/skills/brand/SKILL.md. Use the
-Playwright MCP tools to inspect the running app at the supplied local URL. If
-the caller gives no URL, use http://127.0.0.1:5173. If Playwright MCP or the app
-is unavailable, report the blocker. Do not install tools or start the app.
+Playwright MCP tools to inspect the isolated app started with npm run dev:test.
+If the caller gives no URL, use http://127.0.0.1:5173. Sign in as
+alex@example.test with local-test-password. If Playwright MCP or the isolated
+app is unavailable, report the blocker. Do not install tools or start the app.
 
 Open Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data.
 Follow a real record link to one representative detail page for each of
 Organizations, Contacts, and Deals. Open a deal card in Pipeline to inspect the
 detail panel. Report routes or states you cannot reach with the available data.
 
-Check both light and dark modes at a desktop viewport. If you use the theme
-toggle, record the initial preference and restore it before you finish, even if
+Check both light and dark modes at a desktop viewport. If you use the user
+menu to change the theme, record the initial preference and restore it before you finish, even if
 a check fails. Avoid all other actions that change saved app data. Wait for data
 and fonts before capturing a full-page PNG for each page and mode. Take the
 screenshots with Playwright MCP. Put them only in .playwright-mcp/ at the repo

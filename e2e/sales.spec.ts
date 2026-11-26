@@ -81,7 +81,7 @@ test('demo, saved activities, notes and live Dashboard updates', async ({ page: 
   await p.goto('/');
   const tasks = p.locator('.tasks');
   await expect(tasks).toContainText('Overdue');
-  await expect(tasks).toContainText('Today');
+  await expect(tasks).toContainText('Due today');
   await p.locator('.activity').getByRole('link').first().click();
   await expect(p.getByRole('heading', { name: 'Timeline' })).toBeVisible();
   await p.goto('/deals/deal-3');

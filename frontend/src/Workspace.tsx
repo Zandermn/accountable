@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { api, ReadState, Session, segmentId } from './data';
+import { useApi, ReadState, Session, segmentId } from './data';
 import { Commands, Details, Directory, Trash } from './Records';
 import { RecordDialog, type Action } from './dialogs';
 import { SalesWorkspace } from './Sales';
 import { Dashboard } from './Dashboard';
 import { Data } from './DataView';
-type Version = { dataset: number; revision: number; today: string };
+type Version = { dataset: number; revision: number; today: string; minute: number };
 export function Workspace() {
+  const api = useApi();
   const [section, encoded] = useLocation().pathname.slice(1).split('/');
   const id = encoded && segmentId(encoded);
   const [version, setVersion] = useState<Version>();
@@ -19,12 +20,14 @@ export function Workspace() {
     let live = true,
       sequence = 0;
     let lastDate: string | undefined;
+    let lastMinute: number | undefined;
     async function check() {
       const seq = ++sequence;
       try {
         const current = await api<Version>('/version');
         if (live && seq === sequence) {
-          if (lastDate && current.today !== lastDate) refresh();
+          if (lastDate && (current.today !== lastDate || current.minute !== lastMinute)) refresh();
+          lastMinute = current.minute;
           lastDate = current.today;
           setVersion(current);
           setError('');
@@ -41,7 +44,7 @@ export function Workspace() {
       window.removeEventListener('focus', check);
       clearInterval(timer);
     };
-  }, [refresh]);
+  }, [api, refresh]);
   if (!version)
     return (
       <>

@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   detailPath,
+  FollowUpDate,
   fields,
   heading,
   labels,
@@ -175,9 +176,11 @@ export function History({ kind, row }: { kind: string; row: Row }) {
               })}
             </time>
           </div>
+          {a.added_by && <p>Added by {a.added_by}</p>}
           {a.follow_up && (
             <p>
-              Follow-up {a.follow_up} · {a.done ? 'Complete' : 'Open'}
+              Follow-up <FollowUpDate date={a.follow_up} zone={a.follow_up_zone} /> ·{' '}
+              {a.done ? 'Complete' : 'Open'}
             </p>
           )}
           {a.type !== 'Stage' && (
@@ -213,6 +216,12 @@ export function Details({ kind, id }: { kind: string; id: string }) {
       </header>
       <section className="panel detail-grid">
         <dl>
+          {row.added_by && (
+            <div>
+              <dt>Added by</dt>
+              <dd>{row.added_by}</dd>
+            </div>
+          )}
           {fields[kind]
             .filter((k) => k !== 'name' && !k.endsWith('_id'))
             .map((k) => (
@@ -279,6 +288,7 @@ export function Trash() {
               <tr>
                 <th>Record</th>
                 <th>Type</th>
+                <th>Added by</th>
                 <th>Deleted</th>
                 <th>Action</th>
               </tr>
@@ -288,6 +298,7 @@ export function Trash() {
                 <tr key={row.id}>
                   <td>{row.name || row.description}</td>
                   <td>{singular[row.kind]}</td>
+                  <td>{row.added_by}</td>
                   <td>{new Date(row.deleted_at).toLocaleString()}</td>
                   <td>
                     <button onClick={() => open({ type: 'restore', kind: row.kind, row })}>

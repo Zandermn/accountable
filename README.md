@@ -8,6 +8,19 @@ This is the repo that accompanies the course. Accountable is a business manageme
 
 _If you're looking at this in VS Code or Cursor, right-click `README.md` in the Explorer on the left and choose **Open Preview** to see it formatted._
 
+## Run Accountable
+
+Install Python 3.12 and Node.js 26. Run `uv sync --locked --python 3.12` and `npm ci` from the repository root.
+
+For shared use, set `DATABASE_URL`, `SUPABASE_URL`, and `SUPABASE_PUBLISHABLE_KEY` in the local `.env` file. Use a Supabase Postgres connection URL with SSL, the project URL, and the project's publishable key. Disable new-user sign-up in Supabase Auth and create team accounts in the Supabase dashboard. Keep the `accountable` database schema out of the Supabase Data API's exposed schemas.
+
+- Use `npm run dev` for development with Supabase.
+- Use `npm run build` and `npm start` to serve the built frontend and API from FastAPI at `http://127.0.0.1:8000`.
+- Use `npm run dev:test` for an isolated browser session at `http://127.0.0.1:5173`. Sign in with `alex@example.test` or `blair@example.test`. Both test accounts use `local-test-password`.
+- Use `npm run check` to run the project checks and all three test suites. Install Chrome for Playwright before you run the checks.
+
+To host the app, create a Render Blueprint from `render.yaml` and set the three Supabase settings in Render. FastAPI runs migrations at startup and loads sample data when it initializes a new database.
+
 ## What's in this repo
 
 - `docs/`: the documents for Accountable, such as what we build and the tech stack it uses.
@@ -90,7 +103,7 @@ I'd love to see what you build! Please share it with a pull request to `communit
 
 **Day 4: Harness engineering.** Add a harness to Accountable: your coding standards, `npm run check`, hooks for git and your coding agent, and CI on GitHub. Then add dark mode through the six stages, with the harness in place. Every prompt is in [course/instructions/week1day4.md](course/instructions/week1day4.md). My build: install gitleaks as the instructions show, then `git checkout week1day4-end` and `npm run dev`.
 
-**Day 5: Subagents and Agent Teams.** Add two subagents, a code reviewer and a UI checker. Then take one change through the six stages: sign-in and a shared database on Supabase, search, and a user menu, ending with the app live on Render. I build it with an agent team on camera, as a demo. Every prompt is in [course/instructions/week1day5.md](course/instructions/week1day5.md). My build: `git checkout week1day5-end` and `npm run dev`, which runs it on your computer with sample data and no Supabase. To run it against Supabase or deploy it, first set up your own Supabase project and write your `.env`, as the Day 5 instructions show.
+**Day 5: Subagents and Agent Teams.** Add two subagents, a code reviewer and a UI checker. Then take one change through the six stages: sign-in and a shared database on Supabase, search, and a user menu, ending with the app live on Render. I build it with an agent team on camera, as a demo. Every prompt is in [course/instructions/week1day5.md](course/instructions/week1day5.md). Use `git checkout week1day5-end` for the course checkpoint. To run the multi-user app on this branch, follow [Run Accountable](#run-accountable).
 
 ### Week 2: Positioned for the industry of the future
 

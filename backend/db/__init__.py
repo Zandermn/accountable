@@ -1,4 +1,3 @@
-import os
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -7,6 +6,7 @@ from uuid import uuid4
 
 from sqlalchemy import (
     URL,
+    BigInteger,
     Boolean,
     CheckConstraint,
     Column,
@@ -17,12 +17,12 @@ from sqlalchemy import (
     Table,
     create_engine,
     event,
-    insert,
+    make_url,
     select,
     update,
 )
-from sqlalchemy.schema import CreateTable
 
+POSTGRES_SCHEMA = "accountable"
 schema = MetaData()
 STAGES = {
     "New": 10,
@@ -43,6 +43,14 @@ def uid():
     return str(uuid4())
 
 
+def attribution():
+    return [
+        Column("created_by", String),
+        Column("updated_by", String),
+        Column("added_by", String, server_default="Sample data"),
+    ]
+
+
 def common():
     return [
         Column("id", String, primary_key=True, default=uid),
@@ -50,6 +58,7 @@ def common():
         Column("updated_at", String, nullable=False, default=now),
         Column("deleted_at", String),
         Column("deletion", String),
+        *attribution(),
     ]
 
 
@@ -92,7 +101,7 @@ deals = Table(
     Column("name", String, nullable=False),
     Column("stage", String, nullable=False),
     Column("initial_stage", String, nullable=False),
-    Column("value_cents", Integer, nullable=False),
+    Column("value_cents", BigInteger, nullable=False),
     Column("probability", Integer, nullable=False),
     Column("expected_date", String),
     Column("actual_date", String),
@@ -112,6 +121,7 @@ activities = Table(
     Column("description", String, nullable=False),
     Column("occurred_at", String, nullable=False),
     Column("follow_up", String),
+    Column("follow_up_zone", String),
     Column("done", Boolean, nullable=False, default=False),
     CheckConstraint("(deal_id IS NULL) != (contact_id IS NULL)"),
 )
@@ -120,6 +130,7 @@ events = Table(
     schema,
     Column("id", String, primary_key=True, default=uid),
     link("deal_id", "deals"),
+    *attribution(),
     Column("previous", String, nullable=False),
     Column("stage", String, nullable=False),
     Column("occurred_at", String, nullable=False, default=now),
@@ -133,20 +144,24 @@ detached = Table(
     link("contact_id", "contacts"),
     link("deal_id", "deals"),
 )
-tickets = Table(
-    "backup_confirmations",
-    schema,
-    Column("id", String, primary_key=True),
-    Column("backup", String),
-)
 TABLES = {t.name: t for t in (organizations, contacts, deals, activities)}
-app_preferences = Table(
-    "app_preferences",
+account_preferences = Table(
+    "account_preferences",
     schema,
-    Column("id", Integer, primary_key=True),
+    Column("account_id", String, primary_key=True),
     Column("theme", String, nullable=False),
-    CheckConstraint("id = 1 AND theme IN ('light', 'dark')"),
+    Column("version", Integer, nullable=False),
+    CheckConstraint("theme IN ('light', 'dark', 'system')"),
 )
+
+
+def database_url(database):
+    if isinstance(database, Path):
+        return URL.create("sqlite", database=str(database))
+    url = make_url(database)
+    if url.drivername in ("postgres", "postgresql"):
+        return url.set(drivername="postgresql+psycopg")
+    return url
 
 
 class Problem(Exception):
@@ -159,49 +174,44 @@ class Problem(Exception):
 class Store:
     data_tables = (organizations, contacts, deals, activities, events, detached)
 
-    def __init__(self, path=None, seed=True):
-        self.path = Path(
-            path or os.environ.get("ACCOUNTABLE_DB", "data/accountable.db")
-        )
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.backups = Path(
-            os.environ.get("ACCOUNTABLE_BACKUPS", self.path.parent / "backups")
-        )
-        self.engine = create_engine(
-            URL.create("sqlite", database=str(self.path)),
-            connect_args={"timeout": 15, "autocommit": False},
-        )
+    def __init__(self, database, seed=True):
+        from backend.db.migrations import migrate
 
-        @event.listens_for(self.engine, "connect")
-        def foreign_keys(connection, _):
-            connection.setconfig(sqlite3.SQLITE_DBCONFIG_ENABLE_FKEY, True)
+        self.path = database
+        url = database_url(database)
+        options = {
+            "pool_pre_ping": True,
+            "connect_args": {"connect_timeout": 10},
+            "execution_options": {"schema_translate_map": {None: POSTGRES_SCHEMA}},
+        }
+        if url.get_backend_name() == "sqlite":
+            options = {"connect_args": {"timeout": 15, "autocommit": False}}
+        self.engine = create_engine(url, **options)
+        if self.engine.dialect.name == "sqlite":
+            event.listen(self.engine, "connect", self.enable_foreign_keys)
+        try:
+            with self.engine.begin() as conn:
+                migrate(conn, seed)
+        except Exception:
+            self.engine.dispose()
+            raise
 
-        with self.engine.begin() as conn:
-            conn.execute(CreateTable(state, if_not_exists=True))
-            conn.execute(update(state).values(id=state.c.id))
-            version = conn.scalar(select(state.c.schema_version))
-            if version is None:
-                schema.create_all(conn)
-                conn.execute(
-                    insert(state).values(id=1, schema_version=2, dataset=1, revision=0)
-                )
-                if seed:
-                    from backend.seed import sample
+    @staticmethod
+    def enable_foreign_keys(connection, _):
+        connection.setconfig(sqlite3.SQLITE_DBCONFIG_ENABLE_FKEY, True)
 
-                    sample(conn)
-            elif version == 1:
-                app_preferences.create(conn)
-                conn.execute(update(state).values(schema_version=2))
-            elif version != 2:
-                raise Problem("Unsupported database version.")
-
+    @contextmanager
     def read(self):
-        return self.engine.begin()
+        with self.engine.connect() as conn:
+            if conn.dialect.name == "postgresql":
+                conn = conn.execution_options(isolation_level="REPEATABLE READ")
+            with conn.begin():
+                yield conn
 
     @contextmanager
     def write(self, dataset=None, revision=None, advance=True):
         with self.engine.begin() as conn:
-            # First statement takes the write lock, including for backup and replacement.
+            # First statement takes the write lock, so revision checks and writes use one snapshot.
             conn.execute(update(state).values(revision=state.c.revision))
             current = conn.execute(select(state)).mappings().one()
             if dataset is not None and current["dataset"] != dataset:

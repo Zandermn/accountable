@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { python } from './python.mjs';
+import { loadSettings, python } from './python.mjs';
 import { setTimeout as pause } from 'node:timers/promises';
 import { createInterface } from 'node:readline';
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -23,9 +23,14 @@ function start(command, args) {
   });
   child.on('exit', (code) => stop(code ?? 1));
 }
+const test = process.argv.includes('--test');
+if (!test) loadSettings();
 const port = process.env.ACCOUNTABLE_PORT || '5173';
 const apiPort = process.env.ACCOUNTABLE_API_PORT || '8000';
-start(python, ['-m', 'uvicorn', 'backend.main:app', '--host', '127.0.0.1', '--port', apiPort]);
+const backend = test
+  ? ['backend.tests.local_app:browser_app', '--factory']
+  : ['backend.main:app'];
+start(python, ['-m', 'uvicorn', ...backend, '--host', '127.0.0.1', '--port', apiPort]);
 process.on('SIGINT', () => stop(0));
 process.on('SIGTERM', () => stop(0));
 if (process.argv.includes('--stdin')) {
@@ -34,7 +39,7 @@ if (process.argv.includes('--stdin')) {
 }
 while (!stopping) {
   try {
-    const res = await fetch('http://127.0.0.1:' + apiPort + '/api/version');
+    const res = await fetch('http://127.0.0.1:' + apiPort + '/health');
     if (res.ok) break;
   } catch {
     /* The API is still starting. */

@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { Dashboard } from './Dashboard';
 import { Session } from './data';
 import { Theme } from './theme';
+import { UserMenu } from './UserMenu';
 
 const charts = vi.hoisted(() => ({ bar: vi.fn(), line: vi.fn() }));
 vi.mock('react-chartjs-2', () => ({
@@ -29,7 +30,7 @@ test('shows the monthly figures, links to activity owners, and retries a failed 
     type: 'Call',
     occurred_at: '2026-05-10T12:00:00Z',
     follow_up: '2026-05-11',
-    due: 'Today',
+    due: 'Due today',
   };
   const report = {
     totals: { count: 1, value: 10000, expected: 2500 },
@@ -69,7 +70,7 @@ test('shows the monthly figures, links to activity owners, and retries a failed 
   expect(screen.getByText(/US\$325\.00/)).toBeVisible();
   expect(screen.getByLabelText('Deals won by month')).toBeVisible();
   expect(screen.getByText('Overdue')).toBeVisible();
-  expect(screen.getByText('Today')).toBeVisible();
+  expect(screen.getByText(/Due today/)).toBeVisible();
   expect(screen.getAllByRole('link', { name: 'Pat Buyer' })[0]).toHaveAttribute(
     'href',
     '/contacts/buyer',
@@ -106,19 +107,25 @@ test('switches chart colors while preserving the data and monthly values', async
     vi.fn(async (path: string, options: RequestInit) => ({
       ok: true,
       json: async () =>
-        path === '/api/dashboard' ? report : { theme: options.method === 'PUT' ? 'dark' : 'light' },
+        path === '/api/dashboard'
+          ? report
+          : {
+              theme: options.method === 'PUT' ? 'dark' : 'light',
+              version: options.method === 'PUT' ? 2 : 1,
+            },
     })),
   );
   render(
     <MemoryRouter>
       <style>{styles}</style>
       <Theme>
-        {(control) => (
-          <>
-            {control}
-            <Dashboard />
-          </>
-        )}
+        <UserMenu
+          account={{
+            user: { id: 'alex', email: 'alex@example.test', user_metadata: {} },
+            signOut: async () => {},
+          }}
+        />
+        <Dashboard />
       </Theme>
     </MemoryRouter>,
   );
@@ -137,9 +144,10 @@ test('switches chart colors while preserving the data and monthly values', async
   });
   expect(lightBar.data.datasets[0]).toMatchObject({ backgroundColor: '#ffc145', data: [2] });
 
-  const toggle = screen.getByRole('switch', { name: 'Theme (dark mode)' });
-  fireEvent.click(toggle);
-  await waitFor(() => expect(toggle).toHaveAttribute('aria-disabled', 'false'));
+  fireEvent.click(screen.getByRole('button', { name: 'User menu for alex@example.test' }));
+  const dark = screen.getByRole('radio', { name: 'Dark' });
+  fireEvent.click(dark);
+  await waitFor(() => expect(dark).toHaveAttribute('aria-disabled', 'false'));
   const darkLine = charts.line.mock.lastCall?.[0];
   const darkBar = charts.bar.mock.lastCall?.[0];
   expect(darkLine.options.scales.x.ticks.color).toBe('#a7bec5');
