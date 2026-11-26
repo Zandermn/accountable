@@ -27,6 +27,7 @@ const test = process.argv.includes('--test');
 if (!test) loadSettings();
 const port = process.env.ACCOUNTABLE_PORT || '5173';
 const apiPort = process.env.ACCOUNTABLE_API_PORT || '8000';
+if (test) process.env.ACCOUNTABLE_PORT = port;
 const backend = test
   ? ['backend.tests.local_app:browser_app', '--factory']
   : ['backend.main:app'];

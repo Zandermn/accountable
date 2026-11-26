@@ -19,7 +19,7 @@
 | Action | Behavior |
 | --- | --- |
 | `npm run dev` | Start FastAPI and Vite, print the local browser URL, and connect to the configured Supabase project. |
-| `npm run dev:test` | Start FastAPI and Vite with local test accounts and a temporary SQLite database for browser inspection. |
+| `npm run dev:test` | Start FastAPI and Vite with local test accounts and a temporary SQLite database for browser inspection. Open `http://127.0.0.1:5173` by default. |
 | `npm run build` then `npm start` | Build the frontend and serve the app and API from FastAPI. |
 | `npm test` | Run frontend, backend, and browser tests, even when an earlier suite fails. Return a failure if any suite fails or cannot start. |
 | `npm run check` | Check formatting, lint, types, and secrets, then run all three test suites. |
