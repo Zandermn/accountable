@@ -33,6 +33,7 @@ test('saves an edited note, keeps the draft on failure, and requests confirmatio
     type: 'Note',
     description: 'Discuss terms',
     occurred_at: '2026-05-10T12:00:00Z',
+    added_by: 'Sample data',
   };
   let rejectUpdate = true;
   const fetcher = vi.fn(async (path: string, options: RequestInit) => ({
@@ -55,7 +56,9 @@ test('saves an edited note, keeps the draft on failure, and requests confirmatio
     </MemoryRouter>,
   );
 
-  fireEvent.click(await screen.findByRole('button', { name: 'Edit note' }));
+  const editNote = await screen.findByRole('button', { name: 'Edit note' });
+  expect(editNote.closest('article')).toHaveTextContent(/May \d+ · Added by Sample data/);
+  fireEvent.click(editNote);
   const field = screen.getByRole('textbox', { name: 'Note' });
   expect(field).toHaveValue('Discuss terms');
   fireEvent.change(field, { target: { value: 'Send updated terms' } });

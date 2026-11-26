@@ -9,7 +9,14 @@ The multi-user CRM includes Dashboard, Organizations, Contacts, Deals, Pipeline,
 - Added versioned startup migrations and one-time sample initialization, a local browser test app, and the Render Blueprint. Added API, component, and browser Proof tests for the three phases.
 - Fixed startup for `npm run dev:test` with the default port. The local sign-in server now uses the same web port as Vite.
 - `npm run check` passed with and without inherited Supabase settings. It ran 27 Vitest tests, 54 pytest tests, and 17 Playwright tests. Line coverage was 87.02% in Vitest and 91.68% in pytest. Each unit test ran in under one second.
-- Verified SQLite and local PostgreSQL search parity, concurrent startup, and one-time sample initialization. Verified FastAPI serves deep links, bundled assets, and fonts from the production build. Checked the isolated app in Chrome in Light and Dark themes. Live Supabase and Render verification remain pending.
+- Verified SQLite and local PostgreSQL search parity, concurrent startup, and one-time sample initialization. Verified FastAPI serves deep links, bundled assets, and fonts from the production build. Checked the isolated app in Chrome in Light and Dark themes. Full production sign-in and Render verification remain pending.
+
+## Multi-user Deploy checks
+
+- Fixed overlapping Dashboard follow-ups, missing or incorrect separators on Dashboard and deal notes, and low contrast in the Light search field. The tests reproduced each display problem before the fix. Chrome now checks desktop and laptop widths and measures placeholder contrast in both themes.
+- The startup review now checks the documented defaults and first user action. The browser fixture supplies a web port, so it did not catch the missing port on `npm run dev:test`.
+- The browser tests find each directory search by its accessible name.
+- The read-only Supabase audit found that row-level security is off on the private app tables. The two client roles have no direct grants on those tables. The security advisor reported that the leaked-password check is off.
 
 ## Multi-user intent and specification
 
@@ -34,7 +41,7 @@ The multi-user CRM includes Dashboard, Organizations, Contacts, Deals, Pipeline,
 
 - `reviewer` reads branch changes and reports Important findings and Nits under the [review policy](REVIEW.md). Its instructions restrict it to read-only commands.
 - `ui-check` uses Playwright MCP to check the running app in light and dark modes against the product spec and brand skill. It saves screenshots in the Git-ignored `.playwright-mcp/` directory.
-- The project registers Playwright MCP in `.codex/config.toml`. Open a new Codex session in the trusted project to load the configuration. Start the app with `npm run dev` before you ask Codex to use `ui-check`.
+- The project registers Playwright MCP in `.codex/config.toml`. Open a new Codex session in the trusted project to load the configuration. Start the app with `npm run dev:test` before you ask Codex to use `ui-check`.
 - Accountable registers the read-only Supabase MCP server in `.codex/config.toml`. Sign in to Supabase from the project before you use the server.
 - The local Kimi Code configuration in `.kimi-code/mcp.json` uses the same read-only Supabase server. In a new Kimi Code session, run `/mcp-config login supabase` to sign in.
 - On 2026-11-25, `ui-check` found no issues on Dashboard or Pipeline in Chrome at 1440 × 900 in either theme. It restored the saved Dark preference, and both app servers stopped after the check.
@@ -127,9 +134,7 @@ The local `Harness` branch was pushed to the [Harness branch on GitHub](https://
 
 ## Local runtime
 
-Start the app with `npm run dev`. Open the local URL printed by Vite, normally `http://127.0.0.1:5173`. Keep the terminal open while you use the app. Press Ctrl+C to stop both servers. Startup uses the installed dependencies and local fonts.
-
-The first launch fills `data/accountable.db` with sample records. Each later launch opens the saved database. Backups go in `data/backups/`. Set `ACCOUNTABLE_DB` and `ACCOUNTABLE_BACKUPS` to use other locations. Use the same settings for the app and its data commands.
+Use `npm run dev` for development with Supabase. Use `npm run dev:test` for an isolated browser check with sample records. Open the URL Vite prints, normally `http://127.0.0.1:5173`. Press Ctrl+C to stop both servers. [Runtime commands](specs/runtime.md#startup-and-test-commands)
 
 ## Commands
 
@@ -138,14 +143,11 @@ The first launch fills `data/accountable.db` with sample records. Each later lau
 | `npm run check` | Check frontend and backend formatting, lint rules, and types. Scan the working tree for secrets with Gitleaks, then run all three test suites. |
 | `npm run check:quick` | Run the same checks and unit tests. Skip the Chrome tests. |
 | `npm run format` | Apply Prettier formatting to the frontend and Ruff formatting to the backend. |
-| `npm test` | Run Vitest, pytest, and Playwright in order. Chrome starts the app on temporary ports. Each browser case gets a separate database and backup directory. |
+| `npm test` | Run Vitest, pytest, and Playwright in order. Each Chrome test case starts the app on temporary ports with a separate test database. |
 | `npm run test:ui`, `npm run test:api`, `npm run test:e2e` | Run one test suite. |
 | `npm run build` | Check TypeScript and build the frontend in `frontend/dist/`. |
-| `npm run save` | Save a complete backup, including Trash, links, notes, follow-ups, stage history, and board order. The command prints the backup ID and file path. |
-| `npm run load -- <backup-id>` | Replace `<backup-id>` with the ID printed by save. The command validates that backup, saves the current data, and loads the selected backup. |
-| `npm run seed` | Type `yes` to save a full backup and replace the current data with fresh samples. Press Enter to cancel. |
 
-Use **Data** to download the workbook template, preview an import, export active sales records, or delete a backup. Backup deletion requires two confirmations. Use **Trash** to restore an individual record.
+Use **Data** to download the workbook template, preview an import, or export active sales records. Use **Trash** to restore an individual record.
 
 Gitleaks scans the current working tree, including untracked source files. It uses its default rules and a project rule that also catches shorter OpenAI project key patterns. The scan allows the Git-ignored root `.env` file and excludes generated files in dependency, cache, build, local data, and test output directories.
 

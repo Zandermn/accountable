@@ -25,7 +25,7 @@ test('workbook preview, atomic import, edit and verified export', async ({ page:
   await p.getByText('Apply import').click();
   await expect(p.getByRole('status')).toContainText('Imported 3');
   await p.getByRole('navigation').getByText('Deals', { exact: true }).click();
-  await p.locator('.directory-tools').getByRole('searchbox').fill('Prairie');
+  await p.getByRole('searchbox', { name: 'Search deals', exact: true }).fill('Prairie');
   const row = p.getByRole('row').filter({ hasText: 'Studio renewal' });
   await expect(row).toContainText('Ari Shore');
   await row.getByText('Edit').click();

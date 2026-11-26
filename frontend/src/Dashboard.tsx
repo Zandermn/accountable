@@ -224,8 +224,8 @@ export function Dashboard() {
                                 {t.owner}
                               </Link>
                             </div>
-                            <span>
-                              {t.due === 'Due today' && 'Due today ? '}
+                            <span className="task-due">
+                              {t.due === 'Due today' && 'Due today · '}
                               <FollowUpDate date={t.follow_up} zone={t.follow_up_zone} />
                             </span>
                           </article>
@@ -269,7 +269,12 @@ function activityRow(a: Item) {
         <Link className="text-link" to={detailPath(a.kind, a.owner_id)}>
           {a.owner}
         </Link>
-        {a.added_by && <small>Added by {a.added_by}</small>}
+        {a.added_by && (
+          <>
+            {' · '}
+            <small>Added by {a.added_by}</small>
+          </>
+        )}
       </div>
       <ShortDate value={a.occurred_at} />
     </article>

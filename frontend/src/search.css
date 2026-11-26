@@ -21,6 +21,11 @@
   background: transparent;
 }
 
+.global-search-field input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
 .global-search-results {
   position: absolute;
   z-index: 5;

@@ -463,12 +463,28 @@ main {
 }
 .task-row,
 .activity-row {
-  display: flex;
   gap: 8px;
   align-items: center;
   padding: 6px 0;
 }
+.task-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  row-gap: 2px;
+}
+.task-row .check {
+  grid-row: span 2;
+}
+.task-due {
+  grid-column: 2;
+}
 .task-copy,
+.task-due {
+  overflow-wrap: anywhere;
+}
+.activity-row {
+  display: flex;
+}
 .activity-copy {
   flex: 1;
   min-width: 0;
@@ -491,7 +507,7 @@ main {
 .task-copy a,
 .activity-copy a,
 .activity-copy p,
-.task-row time,
+.task-due,
 .activity-row time {
   font-size: 11px;
   color: var(--muted);

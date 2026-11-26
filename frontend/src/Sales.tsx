@@ -101,7 +101,7 @@ function NotePanel({ row }: { row: Row }) {
             <div className="note-meta">
               <span>
                 <ShortDate value={a.occurred_at} />
-                {a.added_by && <> ? Added by {a.added_by}</>}
+                {a.added_by && <> · Added by {a.added_by}</>}
               </span>
               <span className="note-actions">
                 <button

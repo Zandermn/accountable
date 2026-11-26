@@ -10,6 +10,8 @@
 
 Use one timeline sorted by occurrence time, newest first. Show activities and automatic stage events together on deal pages. Show activities on contact pages. Show [Added by](records.md#attribution) on activity entries. Any signed-in user can edit or delete an activity through the timeline. Stage events are system-managed and move with the deal as part of its recorded history.
 
+On Dashboard recent activity and in deal notes, use a middle dot between the attribution and the link or date beside it.
+
 A user can add a follow-up when logging or editing an activity. Show a **Time zone** field beside the due date. Default new follow-ups to **US Eastern Time** (`America/New_York`). Users can choose a different time zone when they add or edit a follow-up. Save the selected time zone with the due date. Use named time zones that follow local daylight saving rules. If an existing follow-up has no saved time zone, use US Eastern Time. Changing the time zone keeps the selected calendar date unless the user edits the date as well.
 
 Show the due date and its time zone together wherever a follow-up due date appears. Use the calendar day in the follow-up's saved time zone to calculate its status. A follow-up is **Due today** throughout its due date in that time zone. It becomes **Overdue** at the start of the next day in that time zone. All teammates see the same status.

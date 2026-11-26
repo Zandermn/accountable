@@ -31,6 +31,7 @@ test('shows the monthly figures, links to activity owners, and retries a failed 
     occurred_at: '2026-05-10T12:00:00Z',
     follow_up: '2026-05-11',
     due: 'Due today',
+    added_by: 'Sample data',
   };
   const report = {
     totals: { count: 1, value: 10000, expected: 2500 },
@@ -70,7 +71,12 @@ test('shows the monthly figures, links to activity owners, and retries a failed 
   expect(screen.getByText(/US\$325\.00/)).toBeVisible();
   expect(screen.getByLabelText('Deals won by month')).toBeVisible();
   expect(screen.getByText('Overdue')).toBeVisible();
-  expect(screen.getByText(/Due today/)).toBeVisible();
+  expect
+    .soft(screen.getByRole('button', { name: 'Mark done: Call the buyer' }).closest('article'))
+    .toHaveTextContent('Due today · May 11 (US Eastern Time)');
+  expect
+    .soft(screen.getByText('Call · Call the buyer').closest('article'))
+    .toHaveTextContent('Pat Buyer · Added by Sample data');
   expect(screen.getAllByRole('link', { name: 'Pat Buyer' })[0]).toHaveAttribute(
     'href',
     '/contacts/buyer',
