@@ -1,11 +1,7 @@
+from alembic.migration import MigrationContext
+from alembic.operations import Operations
 from sqlalchemy import Column, String, func, insert, inspect, select, update
-from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.schema import (
-    CreateColumn,
-    CreateSchema,
-    CreateTable,
-    ExecutableDDLElement,
-)
+from sqlalchemy.schema import CreateSchema, CreateTable
 
 from backend.db import (
     POSTGRES_SCHEMA,
@@ -15,19 +11,6 @@ from backend.db import (
     schema,
     state,
 )
-
-
-class AddColumn(ExecutableDDLElement):
-    def __init__(self, table, column):
-        self.table = table
-        self.column = column
-
-
-@compiles(AddColumn)
-def compile_add_column(element, compiler, **kwargs):
-    table = compiler.preparer.format_table(element.table)
-    column = compiler.process(CreateColumn(element.column), **kwargs)
-    return f"ALTER TABLE {table} ADD COLUMN {column}"
 
 
 def migrate(conn, seed):
@@ -49,6 +32,7 @@ def migrate(conn, seed):
 
             sample(conn)
     elif version in (1, 2):
+        operations = Operations(MigrationContext.configure(conn))
         for table in (*TABLES.values(), events):
             columns = {
                 column["name"]
@@ -57,17 +41,16 @@ def migrate(conn, seed):
             for key in ("created_by", "updated_by", "added_by", "follow_up_zone"):
                 if key in table.c and key not in columns:
                     original = table.c[key]
-                    conn.execute(
-                        AddColumn(
-                            table,
-                            Column(
-                                key,
-                                String,
-                                server_default="Sample data"
-                                if original.server_default is not None
-                                else None,
-                            ),
-                        )
+                    operations.add_column(
+                        table.name,
+                        Column(
+                            key,
+                            String,
+                            server_default="Sample data"
+                            if original.server_default is not None
+                            else None,
+                        ),
+                        schema=namespace,
                     )
         account_preferences.create(conn, checkfirst=True)
         conn.execute(update(state).values(schema_version=3))

@@ -8,6 +8,3 @@ args = [
     "--isolated",
     "--output-dir", ".playwright-mcp",
 ]
-
-[mcp_servers.supabase]
-url = "https://mcp.supabase.com/mcp?project_ref=xpqppjtyddgrimbdmzet&read_only=true"

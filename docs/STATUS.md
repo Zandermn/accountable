@@ -17,6 +17,9 @@ The multi-user CRM includes Dashboard, Organizations, Contacts, Deals, Pipeline,
 - The startup review now checks the documented defaults and first user action. The browser fixture supplies a web port, so it did not catch the missing port on `npm run dev:test`.
 - The browser tests find each directory search by its accessible name.
 - The read-only Supabase audit found that row-level security is off on the private app tables. The two client roles have no direct grants on those tables. The security advisor reported that the leaked-password check is off.
+- Replaced the custom migration code with Alembic. An existing database upgraded to schema version 3 and retained its records in both SQLite and local PostgreSQL. The production build served deep links, fonts, and protected data to two test accounts across two starts on local PostgreSQL. The local check used a test sign-in service.
+- Restored the course README and moved app setup to the [runtime specification](specs/runtime.md#startup-and-test-commands). Moved the project choice for Supabase MCP out of the shared agent configuration.
+- A read-only check found schema version 3 and the seeded organizations in live Supabase. Live account sign-in and the Render URL remain unverified.
 
 ## Multi-user intent and specification
 
@@ -42,8 +45,8 @@ The multi-user CRM includes Dashboard, Organizations, Contacts, Deals, Pipeline,
 - `reviewer` reads branch changes and reports Important findings and Nits under the [review policy](REVIEW.md). Its instructions restrict it to read-only commands.
 - `ui-check` uses Playwright MCP to check the running app in light and dark modes against the product spec and brand skill. It saves screenshots in the Git-ignored `.playwright-mcp/` directory.
 - The project registers Playwright MCP in `.codex/config.toml`. Open a new Codex session in the trusted project to load the configuration. Start the app with `npm run dev:test` before you ask Codex to use `ui-check`.
-- Accountable registers the read-only Supabase MCP server in `.codex/config.toml`. Sign in to Supabase from the project before you use the server.
-- The local Kimi Code configuration in `.kimi-code/mcp.json` uses the same read-only Supabase server. In a new Kimi Code session, run `/mcp-config login supabase` to sign in.
+- For database inspection in Codex, configure a read-only Supabase MCP connection for your own project in your user settings. [Codex MCP setup](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
+- For database inspection in Kimi Code, configure a project-scoped, read-only Supabase connection in the local `.kimi-code/mcp.json` file. Run `/mcp-config login supabase` to sign in.
 - On 2026-11-25, `ui-check` found no issues on Dashboard or Pipeline in Chrome at 1440 × 900 in either theme. It restored the saved Dark preference, and both app servers stopped after the check.
 - The review of commit `0b04e3b` found that a theme save can still complete on the server after the browser times out. If that save finishes after a newer save, it can overwrite the newer choice. The finding came from code inspection.
 

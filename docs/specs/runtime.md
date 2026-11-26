@@ -4,23 +4,25 @@
 
 - Use a TypeScript React and Vite frontend in `frontend/`, with Node.js 24 or later and Node.js 26 as the project target. Use a Python 3.12 FastAPI backend in `backend/` with uv and root-level `pyproject.toml` and `uv.lock`. Use the root npm workspace and cross-platform npm scripts.
 - In development, bind both servers to loopback and use Vite to proxy the same-origin JSON API to FastAPI. Serve assets and fonts with the app. The one-time setup installs the runtimes, project dependencies, and Chrome for browser tests. The app requires an internet connection for Supabase.
-- Use Postgres on Supabase for app data and isolated SQLite databases for tests. Keep application tables in the private `accountable` Postgres schema. Use SQLAlchemy Core with no raw SQL. Use a versioned schema for records, attribution, links, deletion metadata, board order, stage history, and account preferences. Use database constraints for referential integrity and shared service validation for active-state rules. Commit changes before returning success.
+- Use Postgres on Supabase for app data and isolated SQLite databases for tests. Keep application tables in the private `accountable` Postgres schema, outside the schemas exposed by the Supabase Data API. Use SQLAlchemy Core with no raw SQL. Use Alembic for schema operations that SQLAlchemy Core does not provide. Use a versioned schema for records, attribution, links, deletion metadata, board order, stage history, and account preferences. Use database constraints for referential integrity and shared service validation for active-state rules. Commit changes before returning success.
 - Use a shared backend domain service for API writes and workbook import. Validate active links, stage changes, and restore conditions within the write transaction. Before a confirmed deletion or board move, check that the request uses the current revision. Refresh the affected view when a revision conflict occurs.
 - Use the same backend calculations for Dashboard and Pipeline summaries that need to agree. Add a dependency only if the implementation plan explains why it is needed.
 
 ## Hosting
 
 - Deploy one web service on Render's free plan. FastAPI serves the built frontend and the API at the service's `onrender.com` URL. Run database migrations when the service starts.
-- Use `DATABASE_URL`, `SUPABASE_URL`, and `SUPABASE_PUBLISHABLE_KEY` as environment settings. Set them in `.env` for local development and in Render for the hosted service. Use `render.yaml` to describe the service. Enter the setting values in Render.
+- Use `DATABASE_URL`, `SUPABASE_URL`, and `SUPABASE_PUBLISHABLE_KEY` as environment settings. Set them in `.env` for local development. Use a Postgres connection URL with SSL, the Supabase project URL, and the project's publishable key. Create the Render Blueprint from `render.yaml` and enter the same settings in Render.
 - Start a new Supabase database with [sample data](sample-data.md).
 
 ## Startup and test commands
 
+Install Python 3.12, Node.js 26, uv, Gitleaks, and Chrome. From the repository root, run `uv sync --locked --python 3.12` and `npm ci`.
+
 | Action | Behavior |
 | --- | --- |
 | `npm run dev` | Start FastAPI and Vite, print the local browser URL, and connect to the configured Supabase project. |
-| `npm run dev:test` | Start FastAPI and Vite with local test accounts and a temporary SQLite database for browser inspection. Open `http://127.0.0.1:5173` by default. |
-| `npm run build` then `npm start` | Build the frontend and serve the app and API from FastAPI. |
+| `npm run dev:test` | Start FastAPI and Vite with a temporary SQLite database for browser inspection. Open `http://127.0.0.1:5173` by default. Sign in as `alex@example.test` or `blair@example.test`. Both test accounts use `local-test-password`. |
+| `npm run build` then `npm start` | Build the frontend and serve the app and API from FastAPI at `http://127.0.0.1:8000`. |
 | `npm test` | Run frontend, backend, and browser tests, even when an earlier suite fails. Return a failure if any suite fails or cannot start. |
 | `npm run check` | Check formatting, lint, types, and secrets, then run all three test suites. |
 

@@ -3,7 +3,7 @@ This project will use the following high level technical stack:
 1. Node.js 26, the current LTS (24 or later works) / TypeScript for the frontend, using React and Vite, in `frontend/`
 2. Python 3.12 for the backend using uv, with FastAPI, in `backend/`, with `pyproject.toml` and `uv.lock` at the repo root
 
-The frontend gets its data from the backend's JSON API. The backend uses Supabase Postgres for shared data and SQLite for isolated tests. It uses SQLAlchemy Core with no raw SQL and loads sample data when it initializes a new app database.
+The frontend gets its data from the backend's JSON API. The backend uses Supabase Postgres for shared data and SQLite for isolated tests. It uses SQLAlchemy Core with no raw SQL and Alembic for schema operations that SQLAlchemy Core does not provide. The backend loads sample data when it initializes a new app database.
 
 Prefer popular, well-supported libraries to custom code, such as for the data tables, the charts and the drag-and-drop pipeline. Don't hand-roll what a mature library does well.
 
