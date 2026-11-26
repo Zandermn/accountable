@@ -10,6 +10,6 @@
 
 | View | Contents and actions |
 | --- | --- |
-| Organizations | Show name, website, and industry in the table. Show notes, linked active contacts, and linked active deals on the detail page. |
+| Organizations | Show name, website, and industry in the table. Show Added by, notes, linked active contacts, and linked active deals on the detail page. |
 
 See [Records and validation](records.md) for shared record rules and [Deletion, Trash, and restoration](trash.md) for deletion and restoration.

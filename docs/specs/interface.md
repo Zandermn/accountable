@@ -2,9 +2,9 @@
 
 ## Navigation and common interactions
 
-- Open Dashboard at `/`. Use a persistent left navigation for the five main sections. Put Trash and Data in a separate utility group. Data contains spreadsheet tools and local backup management.
+- Open Dashboard at `/`. Use a persistent left navigation for the five main sections. Put Trash and Data in a separate utility group. Data contains the spreadsheet template, import, and export.
 - Use `/organizations`, `/contacts`, `/deals`, and `/pipeline` for the main views. Use `/organizations/:id`, `/contacts/:id`, and `/deals/:id` for detail pages. Use `/trash` and `/data` for utilities. Links in relationships and dialogs open the corresponding detail page.
-- Show a labeled theme toggle in a shared top bar on every page. Show the current choice and let the user switch modes with the keyboard or pointer. Apply the selected mode immediately to the whole interface, including dialogs and charts. Start in light mode until the user selects a mode. Use the app preference independently of the device's theme setting.
+- On each signed-in page, use a shared top bar with [Search](search.md) and the [user menu](accounts.md#user-menu). The signed-out view shows [Sign in](accounts.md#sign-in-and-shared-access).
 - Each main record table has a search field, sortable data column headings, an Add button, and Edit and Delete actions on each row. The name opens the detail page. Search is case-insensitive and matches visible text fields, including linked names. Use typed sorts for amounts, dates, and stage order. Use the record ID to break ties. Contacts also have a status filter that combines with search.
 - Add and edit open a form with labeled fields, Save, and Cancel. Mark required fields. Keep entered values if validation fails and show the error beside the field where possible. After a successful write, refresh affected lists, links, timelines, and Dashboard data. When a write fails, keep the last saved view and show a message that tells the user what to do.
 - Confirm any deletion that can proceed. Name the record and show which related records move to Trash or lose a link. A blocked deletion opens an explanation with links to all blocking deals. If the data changes while a confirmation dialog is open, check the impact again before applying the deletion.
@@ -14,24 +14,24 @@
 
 The approved light-mode visual reference is [Mockup 6 — Deal Workspace](../mockups/06-deal-workspace.html). The [Playwright screenshot](../mockups/06-deal-workspace.png) shows the Dashboard and the Pipeline with a selected deal open beside the board.
 
-- Support light and dark modes on laptop and desktop screens. In light mode, use page background `#F0F4F5`, white panels and cards, and Midnight `#073B4C` for ink. Keep the existing light-mode appearance, apart from the shared top bar and toggle. In dark mode, use page background `#04232E`, black panels and cards, and Sea Mist `#CDD8DB` for ink. Use rounded panels without outlines in both modes. Avoid single-edge panel borders, top rules, and heavy gradients.
-- Use Instrument Sans for headings and body, JetBrains Mono for figures and identifiers, and Instrument Serif only when a tagline or quote has a purpose. Ship the fonts with the app after setup so they load offline.
+- Support light and dark modes on laptop and desktop screens, including the sign-in screen, top bar, search results, and user menu. In light mode, use page background `#F0F4F5`, white panels and cards, and Midnight `#073B4C` for ink. In dark mode, use page background `#04232E`, black panels and cards, and Sea Mist `#CDD8DB` for ink. Use rounded panels without outlines in both modes. Avoid single-edge panel borders, top rules, and heavy gradients.
+- Use Instrument Sans for headings and body, JetBrains Mono for figures and identifiers, and Instrument Serif only when a tagline or quote has a purpose. Serve the fonts with the app.
 - Use Sea Green `#06D6A0` for primary actions, Marigold `#FFC145` and Coral `#F78C6B` for supporting accents, Cerulean `#118AB2` for information, and Raspberry `#EF476F` for alerts. Use Midnight on the first three. For adjacent chart series or stage accents, apply these colors in that order and use a neutral treatment for the sixth stage. Keep stage names visible.
 - Reserve the exact Cerulean and Raspberry for visual accents or labels large enough to meet text contrast requirements. Use darker variants, `#087391` and `#C62752`, when small text must be white on a colored surface. Use darker variants of Sea Green and Marigold for text on light surfaces and lighter variants for text on dark surfaces.
 - Define colors for both modes in one set of shared color tokens. Use the active mode's tokens for all app surfaces, text, and chart elements. Use existing dependencies for both modes.
-- Check WCAG AA text contrast in both modes at the sizes used in the browser, including chart labels. Use at least 4.5:1 for normal text and 3:1 for large text. Meet these thresholds throughout dark mode and in the new light-mode top bar. Preserve existing light-mode color pairings. If an existing pairing needs a contrast fix, adjust only its dark-mode tokens.
+- Check WCAG AA text contrast in both modes at the sizes used in the browser, including chart labels. Use at least 4.5:1 for normal text and 3:1 for large text. Meet these thresholds throughout dark mode and on the light-mode sign-in screen, top bar, search results, and user menu. Preserve existing light-mode color pairings in the sales views.
 - Use plain business English, short labels, and no exclamation marks. Show currency with every money amount, for example `US$12,500.00`. Give charts labeled axes and values that a keyboard user can reach, or provide the same values in text.
 
 ## Theme persistence
 
-Save the theme as a local app preference that all browsers on the same computer can read when they open Accountable. Restore the saved theme on reload.
+Save the theme choice for each account. New accounts start in System. System follows the current device's light or dark setting. Apply a theme change immediately to the whole signed-in interface, including dialogs and charts. Restore the account's saved choice on reload and when the account signs in from another browser.
 
 ## Verification
 
 | Area | Required verification |
 | --- | --- |
 | Brand and accessibility | In Chrome, visually inspect every screen in both modes against the brand. Check text contrast, including chart labels, and check that existing light-mode colors are preserved. Use the demo to find the next follow-up, identify deals most likely to close, and find recent customer history. Check keyboard access, visible focus, and status labels. |
-| Theme preference | Verify that light mode is the default, including when the device uses dark mode. Check that the shared toggle shows the selected mode on every page and that charts switch with the app. Use an automated test to verify that the selected mode is restored after a reload. Open Accountable in a second browser on the same computer and verify that it uses the saved mode. |
+| Theme preference | Check that a new account uses System and that it follows both light and dark device settings. Change the mode with the keyboard and pointer. Check that the menu shows the choice and that charts switch with the app. Reload and sign in from a second browser to check that the choice persists. Verify that changing one account's preference leaves the other account's preference intact. |
 
 ## Design decisions
 

@@ -10,6 +10,6 @@
 
 | View | Contents and actions |
 | --- | --- |
-| Contacts | Show name, status, organization, email, and phone in the table. Show job title, organization if present, deals where the contact is the main contact, and the contact timeline on the detail page. Provide Log activity there. |
+| Contacts | Show name, status, organization, email, and phone in the table. Show Added by, job title, organization if present, deals where the contact is the main contact, and the contact timeline on the detail page. Provide Log activity there. |
 
 See [Records and validation](records.md) for shared record rules, [Activities and follow-ups](activities.md) for the timeline, and [Deletion, Trash, and restoration](trash.md) for deletion and restoration.

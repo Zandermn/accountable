@@ -14,8 +14,8 @@
 | Deals won | Use a bar chart with the same month range and count active Won deals by actual close month. |
 | Open pipeline | Show the number and total value of active open deals. Expected revenue is the sum of each deal's value times its probability. Compute from cents and integer percentages, then round displayed money totals to cents. |
 | Sales funnel | For each fixed stage, sum the current values of active deals that reached that stage at least once. Use the starting stage and recorded transitions. Count a deal at most once per stage. A skipped stage receives no value from that deal. Label the visual so users can distinguish stage history from current Pipeline occupancy. |
-| Recent activity | Show the latest visible activities and stage events, newest first, with links to the relevant record. |
-| Follow-ups | Show overdue and upcoming open follow-ups for active activities with active owners. Update the Dashboard after a relevant write, including a win, a new or completed follow-up, or a Trash action. |
+| Recent activity | Show the latest visible activities and stage events, newest first, with links to the relevant record. Show [Added by](records.md#attribution) on activity entries. |
+| Follow-ups | Show overdue and upcoming open follow-ups for active activities with active owners. Show each due date with its [saved time zone](activities.md#timelines-and-follow-ups). Use that time zone to determine when the follow-up is due today or overdue. Update the Dashboard after a relevant write, including a win, a new, edited, or completed follow-up, or a Trash action. |
 
 ## JSON API design
 

@@ -6,23 +6,29 @@ A small business keeps track of its customers and sales in spreadsheets, inboxes
 
 ## Product purpose and current scope
 
-Accountable is the main place for one small-business salesperson to track customers and deals. A new salesperson can learn the workflow with realistic sample data. An experienced salesperson can find the next follow-up, judge which deals are likely to close, and review customer history quickly. The product helps salespeople miss fewer follow-ups and find customer history when they need it.
+Accountable gives a small sales team one shared place on the web to track customers and deals. Each team member signs in and works with the same records. A new salesperson can learn the workflow with realistic sample data. An experienced salesperson can find a record from any page, find the next follow-up, judge which deals are likely to close, and review customer history quickly.
 
-Accountable runs on one computer. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, spreadsheet import and export, and local data commands. It supports light and dark modes. It uses US dollars and a fixed pipeline. It excludes sign-in, user accounts, shared data, a user audit log, hosted access, a phone layout, AI, email, calendar and phone integrations, other business-system integrations, other currencies, reports beyond the Dashboard, tags, custom fields, and pipeline configuration.
+Accountable includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and spreadsheet import and export in Data. Organizations, contacts, deals, and activities show who added them. Each account can choose Light, Dark, or System in the menu under the user's initials. The hosted app requires an internet connection. It uses US dollars and a fixed pipeline.
 
-This specification describes the whole product as it stands today. The implementation uses the [tech stack](TECH_STACK.md), and the interface follows the [brand skill](../.agents/skills/brand/SKILL.md). The area files record the detailed requirements and design decisions.
+Each follow-up shows its due date and time zone. New follow-ups default to US Eastern Time. Users can change the time zone when they add or edit a follow-up.
+
+All signed-in users have the same access to shared data. Out of scope are roles, per-record permissions, self-service sign-up, password reset, Google sign-in, magic links, a user audit log, local backups and data commands, migration of existing local data, a phone layout, AI, email, calendar and phone integrations, other business-system integrations, other currencies, reports beyond the Dashboard, tags, custom fields, and pipeline configuration.
+
+The area files record the detailed requirements and design decisions. The interface follows the [brand skill](../.agents/skills/brand/SKILL.md).
 
 ## Product areas
 
 - Routes, shared interactions, visual design, accessibility, and theme. [Navigation, brand, and theme](specs/interface.md)
+- Sign-in, shared access, and the menu under the user's initials. [Accounts and access](specs/accounts.md)
+- Search across organizations, contacts, and deals. [Search](specs/search.md)
 - Metrics, recent activity, and follow-ups. [Dashboard](specs/dashboard.md)
 - Fields, list, and detail page. [Organizations](specs/organizations.md)
 - Fields, list, detail page, and timeline links. [Contacts](specs/contacts.md)
 - Fields, stages, closing rules, details, and notes. [Deals](specs/deals.md)
 - Board, card movement, ordering, and totals. [Pipeline](specs/pipeline.md)
 - Timelines, stage events, and follow-up completion. [Activities and follow-ups](specs/activities.md)
-- Shared record fields, validation, and API operations. [Records and validation](specs/records.md)
+- Shared record fields, attribution, validation, and API operations. [Records and validation](specs/records.md)
 - Deletion blockers, cascading changes, and recovery. [Deletion, Trash, and restoration](specs/trash.md)
 - Workbook schema, validation, and import preview. [Spreadsheet import and export](specs/spreadsheets.md)
-- Sample records, backup controls, save, load, and reset. [Sample data and local backups](specs/backups.md)
-- Local startup, database, shared API errors, and product-wide checks. [Local runtime and verification](specs/runtime.md)
+- Initial sample records and activities. [Sample data](specs/sample-data.md)
+- Local development, hosting, database, shared API errors, and product-wide checks. [Runtime, hosting, and verification](specs/runtime.md)

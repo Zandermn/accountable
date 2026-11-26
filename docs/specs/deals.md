@@ -27,7 +27,7 @@ In record lifecycle rules, **active** means outside Trash. Won and Lost deals re
 
 ## Deal details and notes
 
-- The deal details show the stage, value, probability, close date, organization, and main contact. Show links to the organization and main contact when present. The Notes section has Add note and Edit and Remove actions for each saved note. Save note keeps the note across refresh and restart. Confirm removal and send the note to Trash as an activity of type Note.
+- The deal details show Added by, stage, value, probability, close date, organization, and main contact. Show links to the organization and main contact when present. The Notes section has Add note and Edit and Remove actions for each saved note. Show Added by on each saved note. Save note keeps the note across refresh and restart. Confirm removal and send the note to Trash as an activity of type Note.
 - From a deal opened outside Pipeline, Show in pipeline opens the Pipeline at the deal's current stage. Bring the deal card into view, highlight it, and keep the same deal details open beside the board. Preserve any note draft in the open editor during the jump. The user can still see the surrounding cards and stage totals. Closing the detail window clears the highlight and returns keyboard focus to the card.
 
 ## Stage changes

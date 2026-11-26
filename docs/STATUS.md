@@ -2,9 +2,12 @@
 
 The local CRM is implemented. It includes Dashboard, Organizations, Contacts, Deals, Pipeline, Trash, and Data. Record forms, board moves, and workbook imports use the same stage rules. The app keeps records and board order in SQLite.
 
-## Multi-user intent
+## Multi-user intent and specification
 
 - Completed the [multi-user intent](changes/multi-user/intent.md) for shared records, sign-in, search, and the user menu. It keeps spreadsheet import and export, retires local backups and data commands, defines what the creator label shows, and saves theme preferences per account with System as the default.
+- Updated the [product specification](spec.md) and its area files for the intended product after the multi-user merge.
+- Specified US Eastern Time as the default for follow-ups. Users can change the time zone on each follow-up, and teammates see the same due status.
+- Added the [multi-user implementation plan](changes/multi-user/plan.md) with file ownership, work phases, risks, and verification.
 
 ## Documentation organization
 
